@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <stdlib.h>
 
 /*
 	This program performs the reverse operation of BinaryToAscii.

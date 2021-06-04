@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <stdlib.h>
 
 /* This is a modified non-interactive version of HomeSystem */
 

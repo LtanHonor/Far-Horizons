@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <stdlib.h>
 
 /* This program will generate reports for all species in the game and
    write them to separate files. Each report will consist of a log of the

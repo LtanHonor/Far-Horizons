@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <stdlib.h>
 
 /* This program will create the file locations.dat and will update the
 economic efficiencies of all planets.  These functions are also performed

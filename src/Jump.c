@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <stdlib.h>
 #define	THIS_IS_MAIN
 
 #include "fh.h"

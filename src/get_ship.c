@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <stdlib.h>
 
 /* The following routine will return TRUE and set global variables "ship" and
    "ship_index" if a valid ship designation is found. Otherwise, it will return

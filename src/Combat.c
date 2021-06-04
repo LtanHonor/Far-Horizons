@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <stdlib.h>
 
 /*
 	Terminology: A "battle" consists of one or more "actions", and each

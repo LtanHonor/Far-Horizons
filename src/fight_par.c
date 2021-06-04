@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <stdlib.h>
 
 /* The following routine will fill "act" with ship and nampla data necessary
    for an action; i.e., number of shots per round, damage done per shot,

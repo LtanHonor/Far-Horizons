@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <stdlib.h>
 
 /* This program will list all of the planets in the galaxy using the data
    in the files "galaxy.dat" and "planets.dat". If the -p option is

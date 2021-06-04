@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <stdlib.h>
 
 /* This program has two modes: if provided with X Y Z coordinates, it will
 convert the star system to one suitable for a home system. If not given any

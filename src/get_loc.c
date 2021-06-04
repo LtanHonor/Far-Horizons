@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <stdlib.h>
 
 /* This routine will assign values to global variables x, y, z, pn, star
    and nampla. If the location is not a named planet, then nampla will be

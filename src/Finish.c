@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <stdlib.h>
 
 /*
    This program should be run immediately before running the Report program;

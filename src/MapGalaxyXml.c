@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <stdlib.h>
 
 /* This program will output the map of the galaxy to the file "galaxy.xml"*/
 

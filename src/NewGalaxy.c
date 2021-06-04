@@ -5,7 +5,14 @@
 #define THIS_IS_MAIN
 
 #include "fh.h"
-
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <string.h>
 
 int	species_number;
 
@@ -34,7 +41,7 @@ char *argv[];
     long	volume, l_radius, chance_of_star, num_bytes, star_data_size,
 		planet_data_size, dx, dy, dz, distance_squared;
 
-    char	*cp, star_here[MAX_DIAMETER][MAX_DIAMETER];
+    int 	*cp, star_here[MAX_DIAMETER][MAX_DIAMETER];
 
     struct star_data	*current_star, *star_base, *star, *worm_star;
     struct planet_data	*planet_base, *planet;
@@ -58,8 +65,8 @@ char *argv[];
 
     /* Seed random number generator. */
     last_random = time(NULL);
-    n = rnd(100) + rnd(200) + rnd(300);
-    for (i = 0; i < n; i++) rnd(10);
+    n = (rand() %100) + (rand() %200) + (rand() %300);
+    for (i = 0; i < n; i++) (rand() %10);
 
     /* Get number of species. */
   again1:
@@ -163,9 +170,9 @@ char *argv[];
     num_stars = 0;
     while (num_stars < desired_num_stars)
     {
-	x = rnd (galactic_diameter) - 1;
-	y = rnd (galactic_diameter) - 1;
-	z = rnd (galactic_diameter) - 1;
+	x = (rand() %galactic_diameter) - 1;
+	y = (rand() %galactic_diameter) - 1;
+	z = (rand() %galactic_diameter) - 1;
 
 	real_x = x - galactic_radius;
 	real_y = y - galactic_radius;
@@ -181,6 +188,10 @@ char *argv[];
 	{
 	    star_here[x][y] = z;	/* z-coordinate. */
 	    ++num_stars;
+        if(num_stars < 2)
+            printf ("\n Finished %d pass of Stars: \n", num_stars);
+        else
+            printf ("\n Finished %d passes of Stars: \n", num_stars);
 	    if (num_stars == MAX_STARS) break;
 	}
     }
@@ -237,7 +248,7 @@ char *argv[];
 	if (star_here[x][y] >= 0)
 	{
 	    /* Initialize all bytes of record to zero. */
-	    cp = (char *) star;
+	    cp = (int *) star;
 	    for (i = 0; i < sizeof (struct star_data); i++)
 		*cp++ = 0;
 
@@ -248,14 +259,14 @@ char *argv[];
 
 	    /* Determine type of star. Make MAIN_SEQUENCE the most common
 		star type. */
-	    star_type = rnd(GIANT+6);
+	    star_type = (rand() %GIANT+6);
 	    if (star_type > GIANT) star_type = MAIN_SEQUENCE;
 	    star->type = star_type;
 
 	    /* Color and size of star are totally random. */
-	    star_color = rnd(RED);
+	    star_color = (rand() %RED);
 	    star->color = star_color;
-	    star_size = rnd(10) - 1;
+	    star_size = (rand() %10) - 1;
 	    star->size = star_size;
 
 	    /* Determine the number of planets in orbit around the star.
@@ -268,9 +279,9 @@ char *argv[];
 		/* Number of rolls: dwarves have 1 roll, degenerates and
 		   main sequence stars have 2 rolls, and giants have 3 rolls. */
 	    star_num_planets = -2;
-	    for (i=1; i<=n; i++) star_num_planets += rnd(d);
+	    for (i=1; i<=n; i++) star_num_planets += (rand() % d);
 	    while (star_num_planets > 9)	/* Trim down if too many. */
-		star_num_planets -= rnd(3);
+		star_num_planets -= (rand() %3);
 	    if (star_num_planets < 1) star_num_planets = 1;
 	    star->num_planets = star_num_planets;
 
@@ -307,12 +318,12 @@ char *argv[];
 	if (star->home_system) continue;
 	if (star->worm_here) continue;
 
-	if (rnd(100) < 92) continue;
+	if ((rand() %100) < 92) continue;
 
 	/* There is a wormhole here. Get coordinates of other end. */
 	while (TRUE)
 	{
-	    n = rnd(num_stars);
+	    n = (rand() %num_stars);
 	    worm_star = star_base + n - 1;
 	    if (worm_star == star) continue;
 	    if (worm_star->home_system) continue;
@@ -370,9 +381,11 @@ char *argv[];
     printf ("\nThis galaxy contains a total of %d stars and ", num_stars);
     printf ("%d planets.\n", num_planets);
     printf ("  The galaxy contains %d natural wormholes.\n\n", num_wormholes);
+    printf ("\n\n First Location\n");
 
     if (st_index != num_stars)
 	fprintf (stderr, "\n  Internal consistency check #1 failed!!!\n\n");
+    printf ("\n\n Second Location\n");
 
     /* Create output file for planets. */
     planet_file = creat ("planets.dat", 0600);
@@ -381,7 +394,7 @@ char *argv[];
 	fprintf (stderr, "\n  Cannot create file planets.dat!\n");
 	exit (-1);
     }
-
+    printf ("\n\n Third Location\n");
     /* Write planet data to file "planets.dat". */
     num_bytes = write (planet_file, &num_planets, sizeof(num_planets));
     if (num_bytes != sizeof(num_planets))
@@ -389,7 +402,7 @@ char *argv[];
 	fprintf (stderr, "\n  Cannot write number of planets to file planets.dat!\n");
 	exit (-1);
     }
-
+    printf ("\n\n Fourth Location\n");
     planet = planet_base;
     for (i = 0; i < num_planets; i++)
     {
@@ -401,11 +414,13 @@ char *argv[];
 	}
 	++planet;
     }
-
+    printf ("\n\n Fifth Location\n");
     close (planet_file);
-
-    free (star_base);
-    free (planet_base);
+    printf ("\n\n Sixth Location\n");
+    //free(star_base);
+    printf ("\n\n Seventh Location\n");
+    //free(planet_base);
+    printf ("\n\n Eight Location\n");
 
     exit (0);
 }

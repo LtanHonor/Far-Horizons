@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <stdlib.h>
 
 /* This routine will create the "loc" array based on current species' data. */
 

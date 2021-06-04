@@ -2,13 +2,34 @@
 
 import sys, subprocess, os, codecs
 from imapclient import IMAPClient
-import email, email.utils, email.parser
+import email, email.utils, email.parser, imaplib
 import fhutils
 
 server = "imap.gmail.com"
 port = 993
 ssl = True
 
+# Function to get email content part i.e its body part
+def get_body(msg):
+    if msg.is_multipart():
+        return get_body(msg.get_payload(0))
+    else:
+        return msg.get_payload(None, True)
+  
+# Function to search for a key value pair 
+def search(key, value, con): 
+    result, data = con.search(None, key, '"{}"'.format(value))
+    return data
+  
+# Function to get the list of emails under this label
+def get_emails(result_bytes):
+    msgs = [] # all the email data are pushed inside an array
+    for num in result_bytes[0].split():
+        typ, data = con.fetch(num, '(RFC822)')
+        msgs.append(data)
+  
+    return msgs
+    
 def main():
     global server, port,ssl
     config = fhutils.GameConfig()
@@ -24,13 +45,18 @@ def main():
         print("Sorry data directory %s does not exist." % (data_dir))
         sys.exit(2)
     
-    server = IMAPClient(server, use_uid=True, ssl=ssl)
-    server.login(config.user, config.password)
-    select_info = server.select_folder('INBOX')
-    messages = server.search(['UNSEEN', 'SUBJECT "FH Orders"'])
-    response = server.fetch(messages, ['RFC822'])
-    for k in response:
-        mail = email.message_from_string(response[k]['RFC822'])
+    user_name = "email@address.com"
+    user_pass = "SomePassword"
+    
+    server = imaplib.IMAP4_SSL(server)
+    #IMAPClient(server, use_uid=True, ssl=ssl)
+    server.login(user_name, user_pass)
+    select_info = server.select('INBOX')
+    print(select_info)
+    messages = get_emails(search('UNSEEN', 'SUBJECT "FH Orders"', server)
+    print(messages)
+    for k in messages:
+        mail = email.message_from_string(messages[k]'(RFC822)')
         addressor = mail.get("From")
         from_address = email.utils.parseaddr(addressor)[1]
         if 'wait' in mail.get("Subject"):
@@ -79,7 +105,7 @@ def main():
                 orders = orders.replace("\u00A0", " ").encode('utf-8')
                 fd.write(orders)
                 fd.close()
-                p = subprocess.Popen(["/usr/bin/perl", "/home/ramblurr/src/fh/engine/bash/orders.pl"], stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+                p = subprocess.Popen(["/usr/bin/perl", "/home/userdir/Far-Horizons/src/fh/engine/bash/orders.pl"], stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
                 verify = p.communicate(input=orders)[0]
                 subject = "FH Orders, %s received" % (game_stub)
                 if wait:

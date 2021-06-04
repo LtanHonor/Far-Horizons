@@ -19,6 +19,12 @@ from datetime import datetime
 from dateutil import zoneinfo
 from dateutil.relativedelta import *
 import dateutil
+import email, smtplib, ssl
+from email.mime.multipart import MIMEMultipart
+from email.mime.application import MIMEApplication
+from email.mime.text import MIMEText
+from email.mime.base import MIMEBase
+from email import encoders
 
 deadline_msg ="""
 Orders for the next turn are due on %s at:
@@ -51,7 +57,7 @@ game policies (please read them).
 As always, if there any problems, or you have a question, then shoot me an email.
 
 Best,
-Casey
+YourNameHere
 Gamemaster
 """
 
@@ -63,9 +69,11 @@ Your Far Horizons %s turn results are attached.
 As always, if there any problems, or you have a question, then shoot me an email.
 
 Best,
-Casey
+YourNameHere
 Gamemaster
 """
+
+subject_line = """ FH:TA Galaxy Alpha Announcement/Turns """
 
 def main(argv):
     config_file = None
@@ -107,6 +115,10 @@ def main(argv):
     data_dir = game['datadir']
     bin_dir = config.bindir
     players = fhutils.Game().players
+    #The mail addresses and password
+    sender_address = 'email@address.com'
+    sender_pass = 'SomePassword'
+    
     
     if not os.path.isdir(data_dir):
         print("Sorry data directory %s does not exist." % (data_dir))
@@ -145,7 +157,7 @@ def main(argv):
             subject = "FH %s Turn Results - %s turn %s" % (game_stub, player['name'], turn)
         if not test_flag:
             print("Mailing %s to %s (sp %s)" %(report, player['email'], player['name']))
-            config.send_mail(subject, player['email'], msg, report)
+            #config.send_mail(subject, player['email'], msg, report)
         else:
             print("Writing .test file")
             with open(report+".test", "w") as f:
@@ -153,6 +165,30 @@ def main(argv):
                 f.write("Subject: %s\n" %( subject))
                 f.write(msg)
                 f.write("Attached: %s\n"  % (report))
+        receiver_address = player['email']
+        #Setup the MIME
+        message = MIMEMultipart()
+        message['From'] = sender_address
+        message['To'] = receiver_address
+        message['Subject'] = subject_line   #The subject line
+        #The body and the attachments for the mail
+        message.attach(MIMEText(msg, 'plain'))
+        attach_file_name = "sp%s.zip" % player['num']
+        with open(attach_file_name,'rb') as file:
+            # Attach the file with filename to the email
+            message.attach(MIMEApplication(file.read(), Name=attach_file_name))
+
+        session = smtplib.SMTP('smtp.gmail.com', 587) #use gmail with port
+        session.starttls() #enable security
+        session.login(sender_address, sender_pass) #login with mail_id and password
+        text = message.as_string()
+        session.sendmail(sender_address, receiver_address, text)
+        session.quit()
+        
 
 if __name__ == "__main__":
     main(sys.argv[1:])
+    
+# The modified code here is ugly.  It is a hack job of the original +
+# Google searched answers.  Not the best work, but it sends out the 
+# turns as an email with the correct ZIP files.

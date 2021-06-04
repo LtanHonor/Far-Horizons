@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <stdlib.h>
 /*
   Star Mapping Program:  Version 2.3   26 September, 1993 
   This source code and the accompanying documentation are

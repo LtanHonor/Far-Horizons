@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <stdlib.h>
 
 /* The following routine will append an interspecies transaction to the file
 	interspecies.dat. */

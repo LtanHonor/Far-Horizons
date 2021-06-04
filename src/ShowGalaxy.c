@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <stdlib.h>
 
 /* This program will display a crude ASCII map of the galaxy intended to
    show the gamemaster the relative positions of home planets, ideal colonies

@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <stdlib.h>
 
 /* This program will create an ASCII map of the galaxy and write the result
    to file "galaxy.map".  It will paginate the output based on how many

@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <stdlib.h>
 
 
 /* This routine will get a species name and return TRUE if found and if

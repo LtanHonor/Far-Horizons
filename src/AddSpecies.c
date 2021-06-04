@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <stdlib.h>
 
 /* This program will allow the gamemaster to add a new species to the
    game. */

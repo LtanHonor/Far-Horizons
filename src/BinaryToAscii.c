@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <stdlib.h>
 
 /*
 	This program will create the single ASCII file 'ascii.dat' which

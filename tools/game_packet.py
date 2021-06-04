@@ -30,7 +30,6 @@ def main(argv):
     data_dir = game['datadir']
     bin_dir = config.bindir
     
-    
     os.chdir(data_dir)
     
     # prepare galaxy list
@@ -39,6 +38,7 @@ def main(argv):
         f.write(output)
         
     players = fhutils.Game().players
+
     for p in players:
         try:
             subprocess.check_call(["zip", "sp%s.zip" % (p['num']), "sp%s.rpt.t1" % (p['num']), "galaxy.map.pdf", "galaxy.map.txt",  "game_policies.pdf", "galaxy.list.txt"])
