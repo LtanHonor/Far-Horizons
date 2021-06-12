@@ -6,7 +6,7 @@ import fhutils
 def main():
     global server, port,ssl
     config = fhutils.GameConfig()
-    data_dir = config.gameslist[0]['datadir']  #only support one game now
+    data_dir = os.getcwd() # Adding the ability to call from the game's directory
     game_stub = config.gameslist[0]['stub']
     try:
        game = fhutils.Game()
@@ -22,9 +22,16 @@ def main():
         name = player['name'].center(longest_name)
         orders = "%s/sp%s.ord" %(data_dir, player['num'])
         try:
-            with file(orders, "r+") as f:
-                p = subprocess.Popen(["/usr/bin/perl", "/home/ramblurr/src/fh/engine/bash/orders.pl"], stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
-                verify = p.communicate(input=f.read())[0]
+            with open(orders, "r+") as f:
+                print(type(f))
+                test = f.read()
+                test = test.encode("UTF-8")
+                print(type(test))
+                p = subprocess.Popen(["/usr/bin/perl", "/home/jason/Documents/Far-Horizons/src/fh/engine/bash/orders.pl"], stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+                #test = test.encode('utf-8')
+                verify = p.communicate(input=test)[0]
+                verify = verify.decode('utf-8')
+                print(type(verify))
                 if "No errors found" in verify:
                     print("%s - %s - Ready" %(player['num'], name))
                 else:

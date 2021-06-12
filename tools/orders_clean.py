@@ -6,7 +6,7 @@ import fhutils
 def main():
     global server, port,ssl
     config = fhutils.GameConfig()
-    data_dir = config.gameslist[0]['datadir']  #only support one game now
+    data_dir = os.getcwd()  # Adding the ability to call from the game's directory
     game_stub = config.gameslist[0]['stub']
     try:
        game = fhutils.Game()
@@ -21,7 +21,7 @@ def main():
     for player in game.players:
         orders = "%s/sp%s.ord" %(data_dir, player['num'])
         try:
-            with file(orders, "r+") as f:
+            with open(orders, "r+") as f:
                 text = f.read()
                 text2 = os.linesep.join([s for s in text.splitlines() if s])
                 f.seek(0)

@@ -116,8 +116,8 @@ def main(argv):
     bin_dir = config.bindir
     players = fhutils.Game().players
     #The mail addresses and password
-    sender_address = 'email@address.com'
-    sender_pass = 'SomePassword'
+    sender_address = config.user
+    sender_pass = config.password
     
     
     if not os.path.isdir(data_dir):
