@@ -1,0 +1,12 @@
+#!/bin/bash
+sudo apt install screen
+sudo apt install unzip
+sudo apt install pandoc
+sudo apt install make
+sudo apt install texlive-latex-base
+sudo apt install texlive-latex-extra
+sudo apt install gcc
+sudo apt install ghostscript
+sudo apt install poppler-script
+sudo apt install python3-yaml
+sudo apt install python3-dateutil

@@ -1,0 +1,6 @@
+imapclient
+pyzmail
+pyyaml
+
+# This file will install the required python packages.  for PyYAML, it might already be installed
+# in this case, run pip3 install -U PyYAML
