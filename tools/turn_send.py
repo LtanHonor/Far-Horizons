@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
     Usage: turn_send.py [-h] -c config.yml [-s num]
     
@@ -73,7 +73,7 @@ YourNameHere
 Gamemaster
 """
 
-subject_line = """ FH:TA Galaxy Alpha Announcement/Turns """
+subject_line = """ FH:TA Announcement/Turns """
 
 def main(argv):
     config_file = None
@@ -150,11 +150,13 @@ def main(argv):
         if file_name != None:
             report = "%s/%s" %(data_dir, file_name)
         elif turn == "1":
-            report = "%s/sp%s.zip" %(data_dir, player['num'])
+            report = "sp%s.zip" %( player['num']) # "%s/sp%s.zip" %(data_dir, player['num'])
             subject ="FH %s Game Start - %s" % (game_stub, player['name'])
+            attachment = "sp%s.zip" % player['num']
         else:
-            report = "%s/sp%s.rpt.t%s" %(data_dir, player['num'], turn)
+            report = "sp%s.rpt.t%s" %(player['num'], turn)  # "%s/sp%s.rpt.t%s" %(data_dir, player['num'], turn)
             subject = "FH %s Turn Results - %s turn %s" % (game_stub, player['name'], turn)
+            attachment = "sp%s.rpt.t%s" %(player['num'], turn)
         if not test_flag:
             print("Mailing %s to %s (sp %s)" %(report, player['email'], player['name']))
             #config.send_mail(subject, player['email'], msg, report)
@@ -173,7 +175,7 @@ def main(argv):
         message['Subject'] = subject_line   #The subject line
         #The body and the attachments for the mail
         message.attach(MIMEText(msg, 'plain'))
-        attach_file_name = "sp%s.zip" % player['num']
+        attach_file_name = attachment  # "sp%s.zip" % player['num']
         with open(attach_file_name,'rb') as file:
             # Attach the file with filename to the email
             message.attach(MIMEApplication(file.read(), Name=attach_file_name))
