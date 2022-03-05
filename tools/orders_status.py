@@ -15,6 +15,7 @@ from email.mime.application import MIMEApplication
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
+import chardet
 
 subject_line = """ FH:%s Errors found in Submitted Orders """
 
@@ -94,17 +95,19 @@ def main(argv):
 
         try:
             with open(orders, "r+") as f:
-                print(type(f))
+                #print(type(f))
                 test = f.read()
                 test = test.encode("UTF-8")
-                print(type(test))
+                #print(type(test))
                 msg = error_msg
                 p = subprocess.Popen(["/usr/bin/perl", "/home/jason/Far-Horizons/bash/orders.pl"], stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
                 subprocess.call(["/usr/bin/perl /home/jason/Far-Horizons/bash/orders.pl < %s > %s" %(orders, logging) ],stdin=True, stdout=True, stderr=True, shell=True)
                 #test = test.encode('utf-8')
                 verify = p.communicate(input=test)[0]
+                #print(chardet.detect(verify))
+                #print(verify)
                 verify = verify.decode('utf-8')
-                print(type(verify))
+                #print(type(verify))
                 if "No errors found" in verify:
                     print("%s - %s - Ready" %(player['num'], name))
                 else:
