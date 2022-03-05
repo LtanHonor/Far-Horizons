@@ -73,7 +73,7 @@ YourNameHere
 Gamemaster
 """
 
-subject_line = """ FH:TA Announcement/Turns """
+subject_line = """ FH:%s Announcement/Turns """
 
 def main(argv):
     config_file = None
@@ -172,7 +172,7 @@ def main(argv):
         message = MIMEMultipart()
         message['From'] = sender_address
         message['To'] = receiver_address
-        message['Subject'] = subject_line   #The subject line
+        message['Subject'] = subject_line %(game_stub)   #The subject line
         #The body and the attachments for the mail
         message.attach(MIMEText(msg, 'plain'))
         attach_file_name = attachment  # "sp%s.zip" % player['num']

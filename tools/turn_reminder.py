@@ -29,7 +29,7 @@ from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
 
-subject_line = """ FH:TA Deadline Reminder """
+subject_line = """ FH:%s Deadline Reminder """
 
 
 deadline_msg ="""
@@ -146,7 +146,7 @@ def main(argv):
         message = MIMEMultipart()
         message['From'] = sender_address
         message['To'] = receiver_address
-        message['Subject'] = subject_line   #The subject line
+        message['Subject'] = subject_line %(game_stub)   #The subject line
         #The body and the attachments for the mail
         message.attach(MIMEText(msg, 'plain'))
         #attach_file_name = attachment  # "sp%s.zip" % player['num']
