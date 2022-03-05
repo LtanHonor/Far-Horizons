@@ -4,7 +4,7 @@
  The following script will auto-generate galaxy using data piped via stdio
  Player data is expected in the following format(one line per player):
 
- email,sp_name,,home_planet_name,gov_name,gov_type,ML,GV,LS,BI
+ email,sp_name,home_planet_name,gov_name,gov_type,ML,GV,LS,BI
 
  See example.csv for example
 
@@ -15,6 +15,7 @@
 import fhutils
 import os, tempfile, subprocess, sys, shutil, csv
 import getopt
+
 
 def main(argv):
     config_file = None
@@ -35,7 +36,7 @@ def main(argv):
         config = fhutils.GameConfig(config_file)
     else:
         config = fhutils.GameConfig()
-    game = config.gameslist[0] # for now we only support a single game
+    game = config.gameslist[0]  # for now we only support a single game
     game_name = game['name']
     data_dir = game['datadir']
     bin_dir = config.bindir
@@ -54,7 +55,7 @@ def main(argv):
 
     # Galaxy size is calculated based on default star density and fixed number of stars per race
     # Adjust it here to create less crowded galaxy, players are asking for that
-    adjusted_num_species = str(int(( num_species * 3) / 2))
+    adjusted_num_species = str(int((num_species * 3) / 2))
 
     fhutils.run(bin_dir, "NewGalaxy", [adjusted_num_species])
 
@@ -65,7 +66,7 @@ def main(argv):
 
     output = fhutils.run(bin_dir, "ListGalaxy", ["-p"])
 
-    star_list = [s for s in output.splitlines() if s] # strips empty lines from output
+    star_list = [s for s in output.splitlines() if s]  # strips empty lines from output
     uniq_list = list(set(star_list))  # uniques the list
     if len(star_list) != len(uniq_list):
         print("Galaxy contains duplicate stars!!!")
@@ -85,11 +86,13 @@ def main(argv):
 
         print("\t Executing HomeSystemAuto (%s) " % (curr_sp_number))
         output = fhutils.run(bin_dir, "HomeSystemAuto", ["12"])
-        x,y,z,n = output.split(" ")
+        x, y, z, n = output.split(" ")
 
         print("\t Executing AddSpecies (%s) " % (curr_sp_number))
-        arg = [ str(curr_sp_number), sp_name, home_planet, gov_name, gov_type, x, y, z, n, ML, GV, LS, BI]
+        arg = [str(curr_sp_number), sp_name, home_planet, gov_name, gov_type, x, y, z, n, ML, GV, LS, BI]
+        print("\t arg %s " % (arg))  # uncomment to debug arguments to AddSpeciesAuto
         output = fhutils.run(bin_dir, "AddSpeciesAuto", arg)
+        print("\t output < %s > " % (output))  # uncomment to debug results of AddSpeciesAuto
 
         try:
             fh_names.write("%02d\n%s\n%s\n" % (curr_sp_number, sp_name, email))
@@ -105,6 +108,7 @@ def main(argv):
     print("\t Reporting Turn 1: executing Report")
     fhutils.run(bin_dir, "Report")
     print("DONE")
+
 
 if __name__ == "__main__":
     main(sys.argv[1:])

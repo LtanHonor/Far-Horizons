@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import sys, subprocess, os, codecs
 from imapclient import IMAPClient
@@ -131,7 +131,7 @@ def main():
                 bin_dir = config.bindir
 
                 orders = orders.encode('utf-8')
-                p = subprocess.Popen(["/usr/bin/perl", "/home/jason/Far-Horizons/src/fh/engine/bash/orders.pl"], stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+                p = subprocess.Popen(["/usr/bin/perl", "/home/jason/Far-Horizons/bash/orders.pl"], stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
                 verify = p.communicate(input=orders)[0]
                 subject = "FH Orders, %s Verified Receipt" % (game_stub)
                 message = MIMEMultipart()

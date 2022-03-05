@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import sys, subprocess, os
 import fhutils
@@ -21,13 +21,16 @@ def main():
     for player in game.players:
         name = player['name'].center(longest_name)
         orders = "%s/sp%s.ord" %(data_dir, player['num'])
+        logging = "%s.log" % orders
+        #logfile = open(logging, 'w')
+
         try:
             with open(orders, "r+") as f:
                 print(type(f))
                 test = f.read()
                 test = test.encode("UTF-8")
                 print(type(test))
-                p = subprocess.Popen(["/usr/bin/perl", "/home/jason/Documents/Far-Horizons/src/fh/engine/bash/orders.pl"], stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+                p = subprocess.Popen(["/usr/bin/perl", "/home/jason/Far-Horizons/bash/orders.pl"], stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
                 #test = test.encode('utf-8')
                 verify = p.communicate(input=test)[0]
                 verify = verify.decode('utf-8')
@@ -36,6 +39,7 @@ def main():
                     print("%s - %s - Ready" %(player['num'], name))
                 else:
                     print("%s - %s - Errors" %(player['num'], name))
+                subprocess.call(["/usr/bin/perl /home/jason/Far-Horizons/bash/orders.pl < %s > %s" %(orders, logging) ],stdin=True, stdout=True, stderr=True, shell=True)# > {}".format(orders, logfile)])#, shell=True)
         except IOError:
             print("%s - %s - No Orders" %(player['num'], name))
                 

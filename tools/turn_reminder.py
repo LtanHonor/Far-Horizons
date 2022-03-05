@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
     Usage: turn_send.py [-h] -c config.yml [-s num]
 
@@ -18,6 +18,19 @@ from datetime import datetime
 from dateutil import zoneinfo
 from dateutil.relativedelta import *
 import dateutil
+
+from datetime import datetime, time
+from dateutil import tz, parser
+
+import email, smtplib, ssl
+from email.mime.multipart import MIMEMultipart
+from email.mime.application import MIMEApplication
+from email.mime.text import MIMEText
+from email.mime.base import MIMEBase
+from email import encoders
+
+subject_line = """ FH:TA Deadline Reminder """
+
 
 deadline_msg ="""
 Orders for the next turn are due on %s at:
@@ -44,7 +57,7 @@ Just a gentle reminder that Far Horizons %s orders are due soon!
 As always, if there any problems, or you have a question, then shoot me an email.
 
 Best,
-Casey
+Your Name Here
 Gamemaster
 """
 
@@ -67,6 +80,8 @@ def main(argv):
             test_flag = True
         elif opt in ("-s", "--species"):
             species_num = arg
+        elif opt in ("-u", "--subject"):
+            subject = arg
 
     if config_file:
         config = fhutils.GameConfig(config_file)
@@ -79,6 +94,11 @@ def main(argv):
     data_dir = game['datadir']
     bin_dir = config.bindir
     players = fhutils.Game().players
+    sender_address = config.user
+    sender_pass = config.password
+
+    #efault_date = datetime.combine(datetime.now(),time(0, tzinfo=tz.gettz(config['zone'])))#America/New_York")))
+    #dt = parser.parse(some_dt_str, default=default_date)
 
     if not os.path.isdir(data_dir):
         print("Sorry data directory %s does not exist." % (data_dir))
@@ -90,10 +110,11 @@ def main(argv):
 
     turn = fhutils.run(bin_dir, "TurnNumber").strip()
     global message,deadline_msg, start_msg
-    next_deadline = deadline_rule.after(datetime.now(config['zone']))
-    est = zoneinfo.gettz('America/New_York')
-    pst = zoneinfo.gettz('America/Los_Angeles')
-    poland = zoneinfo.gettz('Europe/Warsaw')
+    #next_deadline = deadline_rule.after(datetime.now(tz.gettz('America/New_York')))#game['timezone']))
+    next_deadline = deadline_rule.after(datetime.now(dateutil.tz.tzutc()))
+    est = dateutil.tz.gettz('America/New_York')
+    pst = dateutil.tz.gettz('America/Los_Angeles')
+    poland = dateutil.tz.gettz('Europe/Warsaw')
     day = next_deadline.strftime("%A %B %d")
     time = next_deadline.strftime("%H:%M (%I:%M %p) %Z")
     time += "\n= %s" % (next_deadline.astimezone(est).strftime("%I:%M %p %Z"))
@@ -113,13 +134,32 @@ def main(argv):
         subject = "FH %s Orders Reminder - %s" % (game_stub, player['name'])
         if not test_flag:
             print("Mailing reminder to %s (sp %s)" %(player['email'], player['name']))
-            config.send_mail(subject, player['email'], msg)
+            #config.send_mail(subject, player['email'], msg)
         else:
             print("Writing .test file")
             with open("sp%s.test"%(player['num']), "w") as f:
                 f.write("To: %s\n" %( player['email']))
                 f.write("Subject: %s\n" %( subject))
                 f.write(msg)
+        receiver_address = player['email']
+        #Setup the MIME
+        message = MIMEMultipart()
+        message['From'] = sender_address
+        message['To'] = receiver_address
+        message['Subject'] = subject_line   #The subject line
+        #The body and the attachments for the mail
+        message.attach(MIMEText(msg, 'plain'))
+        #attach_file_name = attachment  # "sp%s.zip" % player['num']
+        #with open(attach_file_name,'rb') as file:
+            # Attach the file with filename to the email
+        #    message.attach(MIMEApplication(file.read(), Name=attach_file_name))
+
+        session = smtplib.SMTP('smtp.gmail.com', 587) #use gmail with port
+        session.starttls() #enable security
+        session.login(sender_address, sender_pass) #login with mail_id and password
+        text = message.as_string()
+        session.sendmail(sender_address, receiver_address, text)
+        session.quit()
 
 if __name__ == "__main__":
     main(sys.argv[1:])

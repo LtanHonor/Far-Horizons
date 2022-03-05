@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
     Usage: turn_inject.py [-h] -c config.yml < message to inject
 
