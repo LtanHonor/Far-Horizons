@@ -37,6 +37,15 @@ GAME MASTERING
 
 See [tools/README.md](tools/README.md).
 
+For a consolidated setup + operations guide, see
+[doc/USER_MANUAL.md](doc/USER_MANUAL.md).
+
+For day-to-day GM commands, see
+[doc/QUICK_OPS_CHEAT_SHEET.md](doc/QUICK_OPS_CHEAT_SHEET.md).
+
+For the desktop GM control panel, run `tools/game_manager_gui.py`; it now
+includes a guided New Game Wizard for first-turn setup.
+
 
 LICENSE
 -------

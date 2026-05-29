@@ -22,7 +22,7 @@ struct ship_data	*ship_base, *ship;
 extern struct planet_data	*planet_base;
 
 
-main (argc, argv)
+int main (argc, argv)
 
 int argc;
 char *argv[];
@@ -334,4 +334,6 @@ char *argv[];
     avg_production = (all_production + m) / n_species;
     printf ("Average total production per species = %ld (min = %ld, max = %ld)\n",
 	avg_production, min_production, max_production);
+
+	return 0;
 }

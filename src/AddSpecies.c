@@ -440,9 +440,9 @@ char	name[];
 again:
     fflush (stdout);
     fgets (temp, 1024, stdin);
-    if (strlen(temp) > 32)
+    if (strlen(temp) > MAX_LONG_NAME_BUF)
     {
-	printf ("\n\tIt's too long! 31 characters max!\n");
+	printf ("\n\tIt's too long! %d characters max!\n", MAX_LONG_NAME);
 	printf ("\nEnter again: ");
 	goto again;
     }

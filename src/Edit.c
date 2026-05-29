@@ -401,7 +401,7 @@ edit_species_stats ()
 
     long	bit_mask;
 
-    char	name[32], answer[32];
+    char	name[MAX_LONG_NAME_BUF], answer[MAX_LONG_NAME_BUF];
 
 
     /* List each nampla attribute and let user change it. */
@@ -409,18 +409,18 @@ edit_species_stats ()
 	species->name);
 
     printf ("Species name is %s: ", species->name);
-    get_name (name);
-    if (answer[0] == 27) return;
+    get_long_name (name);
+    if (name[0] == 27) return;
     else if (name[0] != '\0') strcpy (species->name, name);
 
     printf ("Species government name is %s: ", species->govt_name);
-    get_name (name);
-    if (answer[0] == 27) return;
+    get_long_name (name);
+    if (name[0] == 27) return;
     else if (name[0] != '\0') strcpy (species->govt_name, name);
 
     printf ("Species government type is %s: ", species->govt_type);
-    get_name (name);
-    if (answer[0] == 27) return;
+    get_long_name (name);
+    if (name[0] == 27) return;
     else if (name[0] != '\0') strcpy (species->govt_type, name);
 
     printf ("\nCurrent economic units = %ld: ", species->econ_units);
@@ -641,7 +641,7 @@ edit_nampla ()
 {
     int		i, n, nampla_number, index_changed, found;
 
-    char	answer[32];
+    char	answer[MAX_LONG_NAME_BUF];
 
 again:
     printf ("\n");
@@ -838,7 +838,7 @@ create_nampla ()
 {
     int		i, found, unused_nampla_available, nampla_index;
 
-    char	name[32], upper_nampla_name[32], upper_name[32];
+    char	name[MAX_LONG_NAME_BUF], upper_nampla_name[MAX_LONG_NAME_BUF], upper_name[MAX_LONG_NAME_BUF];
 
     struct nampla_data	*unused_nampla;
 
@@ -848,9 +848,9 @@ create_nampla ()
 
     /* Get planet name and make an upper case copy. */
     printf ("\nEnter name: ");
-    get_name (name);
+    get_long_name (name);
     if (name[0] == 27  ||  name[0] == '\0') return;
-    for (i = 0; i < 32; i++) upper_name[i] = toupper(name[i]);
+    for (i = 0; i < MAX_LONG_NAME; i++) upper_name[i] = toupper(name[i]);
 
     /* Search existing namplas for name and location. */
     found = FALSE;
@@ -877,7 +877,7 @@ create_nampla ()
 	}
 
 	/* Make upper case copy of nampla name. */
-	for (i = 0; i < 32; i++)
+    for (i = 0; i < MAX_LONG_NAME; i++)
 	    upper_nampla_name[i] = toupper(nampla->name[i]);
 
 	/* Compare names. */
@@ -922,7 +922,7 @@ edit_ship ()
 {
     int		i, n, ship_number;
 
-    char	answer[32];
+    char	answer[MAX_LONG_NAME_BUF];
 
 
 again:
@@ -1081,7 +1081,7 @@ create_ship ()
 {
     int		i, found, unused_ship_available, ship_index;
 
-    char	name[32], upper_ship_name[32], upper_name[32];
+    char	name[MAX_LONG_NAME_BUF], upper_ship_name[MAX_LONG_NAME_BUF], upper_name[MAX_LONG_NAME_BUF];
 
     struct ship_data	*unused_ship;
 
@@ -1090,7 +1090,7 @@ create_ship ()
     printf ("\nEnter name: ");
     get_name (name);
     if (name[0] == 27  ||  name[0] == '\0') return;
-    for (i = 0; i < 32; i++) upper_name[i] = toupper(name[i]);
+    for (i = 0; i < MAX_LONG_NAME; i++) upper_name[i] = toupper(name[i]);
 
     /* Search existing ships for name and location. */
     found = FALSE;
@@ -1109,7 +1109,7 @@ create_ship ()
 	}
 
 	/* Make upper case copy of ship name. */
-	for (i = 0; i < 32; i++)
+    for (i = 0; i < MAX_LONG_NAME; i++)
 	    upper_ship_name[i] = toupper(ship->name[i]);
 
 	/* Compare names. */
@@ -1215,14 +1215,47 @@ char	name[];
     char	temp[1024];
 
 
-    for (i = 0; i < 32; i++) name[i] = 0;
+    for (i = 0; i < MAX_LONG_NAME_BUF; i++) name[i] = 0;
 
 again:
     fflush (stdout);
     fgets (temp, 1024, stdin);
-    if (strlen(temp) > 32)
+    if (strlen(temp) > MAX_LONG_NAME_BUF)
     {
-	printf ("\n\tIt's too long! 31 characters max!\n");
+	printf ("\n\tIt's too long! %d characters max!\n", MAX_LONG_NAME);
+	printf ("\nEnter again: ");
+	goto again;
+    }
+
+    i = 0;
+    while (1)
+    {
+	if (temp[i] == '\n') break;
+	name[i] = temp[i];
+	++i;
+    }
+
+    name[i] = '\0';
+}
+
+
+get_long_name (name)
+
+char	name[];
+
+{
+    int		i;
+    char	temp[1024];
+
+
+    for (i = 0; i < MAX_LONG_NAME_BUF; i++) name[i] = 0;
+
+again:
+    fflush (stdout);
+    fgets (temp, 1024, stdin);
+    if (strlen(temp) > MAX_LONG_NAME_BUF)
+    {
+	printf ("\n\tIt's too long! %d characters max!\n", MAX_LONG_NAME);
 	printf ("\nEnter again: ");
 	goto again;
     }
@@ -1257,3 +1290,5 @@ again:
 
     return 1;
 }
+
+

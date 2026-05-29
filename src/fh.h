@@ -1,8 +1,25 @@
-
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include <malloc.h>
+#include <time.h>
+
+#ifdef _WIN32
+#include <io.h>
+#include <fcntl.h>
+#ifndef O_BINARY
+#define O_BINARY _O_BINARY
+#endif
+#define open(path, flags) _open((path), (flags) | O_BINARY)
+#define creat(path, mode) _open((path), _O_CREAT | _O_TRUNC | _O_WRONLY | O_BINARY, (mode))
+#define read _read
+#define write _write
+#define close _close
+#define lseek _lseek
+#else
+#include <unistd.h>
+#include <fcntl.h>
+#endif
 
 
 #define	TRUE	1
@@ -143,11 +160,14 @@ struct planet_data
 #define	LS	4	/* Life Support tech level. */
 #define	BI	5	/* Biology tech level. */
 
+#define MAX_LONG_NAME	128
+#define MAX_LONG_NAME_BUF	(MAX_LONG_NAME + 1)
+
 struct species_data
 {
-    char	name[32];		/* Name of species. */
-    char	govt_name[32];		/* Name of government. */
-    char	govt_type[32];		/* Type of government. */
+	char	name[MAX_LONG_NAME_BUF];		/* Name of species. */
+	char	govt_name[MAX_LONG_NAME_BUF];		/* Name of government. */
+	char	govt_type[MAX_LONG_NAME_BUF];		/* Type of government. */
     char	x, y, z, pn;		/* Coordinates of home planet. */
     char	required_gas;		/* Gas required by species. */
     char	required_gas_min;	/* Minimum needed percentage. */
@@ -231,7 +251,6 @@ struct species_data
 #define MAX_ITEMS	38	/* Always bump this up to a multiple of two.
 				Don't forget to make room for zeroth element! */
 
-
 /* Status codes for named planets. These are logically ORed together. */
 #define	HOME_PLANET		1
 #define	COLONY			2
@@ -242,7 +261,7 @@ struct species_data
 
 struct nampla_data
 {
-    char	name[32];	/* Name of planet. */
+	char	name[MAX_LONG_NAME_BUF];	/* Name of planet. */
     char	x, y, z, pn;	/* Coordinates. */
     char	status;		/* Status of planet. */
     char	reserved1;	/* Zero for now. */
@@ -313,7 +332,7 @@ struct nampla_data
 
 struct ship_data
 {
-    char	name[32];		/* Name of ship. */
+	char	name[MAX_LONG_NAME_BUF];		/* Name of ship. */
     char	x, y, z, pn;		/* Current coordinates. */
     char	status;			/* Current status of ship. */
     char	type;			/* Ship type. */
@@ -373,11 +392,11 @@ struct trans_data
     long	value;		/* Value of transaction. */
     char	x, y, z, pn;	/* Location associated with transaction. */
     long	number1;	/* Other items associated with transaction.*/
-    char	name1[40];
+	char	name1[MAX_LONG_NAME_BUF];
     long	number2;
-    char	name2[40];
+	char	name2[MAX_LONG_NAME_BUF];
     long	number3;
-    char	name3[40];
+	char	name3[MAX_LONG_NAME_BUF];
 };
 
 

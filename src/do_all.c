@@ -6,7 +6,7 @@
 
 extern int			first_pass, doing_production, g_spec_number,
 				num_transactions, species_number;
-extern char			input_line[256], g_spec_name[32];
+extern char			input_line[256], g_spec_name[MAX_LONG_NAME_BUF];
 extern FILE			*log_file;
 extern struct species_data	*species;
 extern struct nampla_data	*nampla_base;
@@ -85,3 +85,4 @@ do_ALLIES_command ()
     strcpy (transaction[n].name1, species->name);
     strcpy (transaction[n].name2, g_spec_name);
 }
+

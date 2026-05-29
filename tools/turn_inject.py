@@ -59,7 +59,7 @@ def main(argv):
 
     for player in players:
         inject_p = inject.replace("SP_NAME", player['name'])
-        report_name = "%s/sp%s.rpt.t%s" %(data_dir, player['num'], turn)
+        report_name = "%s/sp%s.rpt.t%s.txt" %(data_dir, player['num'], turn)
         with open(report_name, 'r') as original: report = original.read()
         if test_flag:
             print(inject_p + "\n\n" + report)

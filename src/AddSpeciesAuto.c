@@ -1,5 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
 
 /* This is a modified non-interactive version of AddSpecies */
 
@@ -46,8 +44,8 @@ char *argv[];
 
     /* Seed random number generator. */
     last_random = time(NULL);
-    n = rnd(100) + rnd(200) + rnd(300);
-    for (i = 0; i < n; i++) rnd(10);
+    n = 1+rand()%100 + 1 + rand()%200 + 1 + rand()%300; //rnd(100) + rnd(200) + rnd(300);
+    for (i = 0; i < n; i++) (1 + rand()%10); //rnd(10);
 
     /* Get all the raw data. */
     get_galaxy_data ();
@@ -63,8 +61,8 @@ char *argv[];
     if (argc != 14)
     {
       fprintf (stderr, "\n  Usage: AddSpeciesAuto <params> \n");
-	fprintf (stderr, "    See Auto.pl for parameter details.\n\n");
-	exit (-1);
+	  fprintf (stderr, "    See Auto.pl for parameter details.\n\n");
+	  exit (-1);
     }
 
     galaxy.num_species++;
@@ -77,12 +75,12 @@ char *argv[];
         printf("\n\n\tERROR!  Species '%s' name too short (min 5 chars required)\n", argv[2]);
         exit(-1);
     }
-    if (j > 31)
+    if (j > MAX_LONG_NAME)
     {
-        printf("\n\n\tERROR!  Species '%s' name too long (max 31 chars required)\n", argv[2]);
+        printf("\n\n\tERROR!  Species '%s' name too long (max %d chars required)\n", argv[2], MAX_LONG_NAME);
         exit(-1);
     }
-    strncpy(&spec.name, argv[2], 31);
+    strncpy(&spec.name, argv[2], MAX_LONG_NAME);
 
     for (i = 0; i < j; i++)
     {
@@ -90,31 +88,31 @@ char *argv[];
 	if (c == '$'  ||  c == '!'  ||  c == '"')
 	{
 	    printf ("\n\n\tERROR!  Invalid character '%c' in species name!\n", c);
-            exit(-1);
+        exit(-1);
 	}
     }
 
     delete_nampla (&home_nampla);		/* Set everything to zero. */
-    if (strlen(argv[3]) > 31)
+    if (strlen(argv[3]) > MAX_LONG_NAME)
     {
-        printf("\n\n\tERROR!  Home planet '%s' name too long (max 31 chars required)\n", argv[3]);
+        printf("\n\n\tERROR!  Home planet '%s' name too long (max %d chars required)\n", argv[3], MAX_LONG_NAME);
         exit(-1);
     }
-    strncpy(&home_nampla.name, argv[3], 31);
+    strncpy(&home_nampla.name, argv[3], MAX_LONG_NAME);
     
-    if (strlen(argv[4]) > 31)
+    if (strlen(argv[4]) > MAX_LONG_NAME)
     {
-        printf("\n\n\tERROR!  Government '%s' name too long (max 31 chars required)\n", argv[4]);
+        printf("\n\n\tERROR!  Government '%s' name too long (max %d chars required)\n", argv[4], MAX_LONG_NAME);
         exit(-1);
     }
-    strncpy(&spec.govt_name, argv[4], 31);
+    strncpy(&spec.govt_name, argv[4], MAX_LONG_NAME);
     
-    if (strlen(argv[5]) > 31)
+    if (strlen(argv[5]) > MAX_LONG_NAME)
     {
-        printf("\n\n\tERROR!  Government '%s' type too long (max 31 chars required)\n", argv[5]);
+        printf("\n\n\tERROR!  Government '%s' type too long (max %d chars required)\n", argv[5], MAX_LONG_NAME);
         exit(-1);
     }
-    strncpy(&spec.govt_type, argv[5], 31);
+    strncpy(&spec.govt_type, argv[5], MAX_LONG_NAME);
 
     home_nampla.x = spec.x = x = atoi(argv[6]);
     home_nampla.y = spec.y = y = atoi(argv[7]);
@@ -274,7 +272,7 @@ char *argv[];
 	a small random amount. Mining and manufacturing base will be
 	reverse-calculated from the capacity. */
     i = spec.tech_level[MI] + spec.tech_level[MA];
-    n = (25 * i)  +  rnd(i) + rnd(i) + rnd(i);
+    n = (25 * i)  +  (1 + rand()%i) +  (1 + rand()%i) +  (1 + rand()%i); // rnd(i) + rnd(i) + rnd(i);
     home_nampla.mi_base =
 	(n * (long) home_planet->mining_difficulty)
 		/ (10L * (long) spec.tech_level[MI]);
@@ -364,7 +362,7 @@ char *argv[];
     save_star_data ();
 
     /* Create species file. */
-    sprintf (filename, "sp%02d.dat\0", species_number);
+    sprintf (filename, "sp%02d.dat%c", species_number, '\0');
 
     species_fd = creat (filename, 0600);
     if (species_fd < 0)
@@ -389,7 +387,7 @@ char *argv[];
     close (species_fd);
 
     /* Create log file for first turn. Write home star system data to it. */
-    sprintf (filename, "sp%02d.log\0", species_number);
+    sprintf (filename, "sp%02d.log%c", species_number, '\0');
     log_file = fopen (filename, "w");
     if (log_file == NULL)
     {

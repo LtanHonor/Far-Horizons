@@ -26,7 +26,7 @@ def main():
                 f.truncate(0)
                 text2 = os.linesep.join([s for s in text.splitlines() if s])
                 f.seek(0)
-                #f.write(text2)
+                #f.write(text2) # removed
                 if not text2.isspace():
                     f.write(text2)
             f.close()

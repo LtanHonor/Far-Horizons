@@ -7,8 +7,8 @@
 extern int			abbr_type, abbr_index, species_number,
 				species_index, ship_index, num_stars;
 extern long			value;
-extern char			input_line[256], original_line[256], original_name[32],
-				upper_name[32], *input_line_pointer;
+extern char			input_line[256], original_line[256], original_name[MAX_LONG_NAME_BUF],
+				upper_name[MAX_LONG_NAME_BUF], *input_line_pointer;
 
 extern FILE			*log_file;
 extern struct star_data		*star_base, *star;
@@ -24,7 +24,7 @@ do_BASE_command ()
 		unused_ship_available, new_tonnage, max_tonnage, new_starbase,
 		source_is_a_planet, age_new;
 
-    char	x, y, z, pn, upper_ship_name[32], *original_line_pointer;
+    char	x, y, z, pn, upper_ship_name[MAX_LONG_NAME_BUF], *original_line_pointer;
 
     struct nampla_data		*source_nampla;
     struct ship_data		*source_ship, *starbase, *unused_ship;
@@ -147,7 +147,7 @@ do_BASE_command ()
 	}
 
 	/* Make upper case copy of ship name. */
-	for (i = 0; i < 32; i++)
+	for (i = 0; i < MAX_LONG_NAME; i++)
 	    upper_ship_name[i] = toupper(ship->name[i]);
 
 	/* Compare names. */
@@ -288,3 +288,6 @@ do_BASE_command ()
     else
 	source_ship->item_quantity[SU] -= su_count;
 }
+
+
+

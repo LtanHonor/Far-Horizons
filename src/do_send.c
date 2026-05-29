@@ -7,7 +7,7 @@
 extern int			abbr_type, abbr_index, species_number,
 				g_spec_number, first_pass, num_transactions;
 extern long			value;
-extern char			input_line[256], g_spec_name[32],
+extern char			input_line[256], g_spec_name[MAX_LONG_NAME_BUF],
 				*input_line_pointer;
 extern FILE			*log_file;
 extern struct species_data	*species;
@@ -119,3 +119,4 @@ do_SEND_command ()
     spec_data[g_spec_number - 1].econ_units += item_count;
     data_modified[g_spec_number - 1] = TRUE;
 }
+

@@ -13,7 +13,7 @@
 
 extern int			x, y, z, pn, num_stars, abbr_type;
 extern long			value;
-extern char			upper_name[32], *input_line_pointer;
+extern char			upper_name[MAX_LONG_NAME_BUF], *input_line_pointer;
 extern struct species_data	*species;
 extern struct nampla_data	*nampla_base, *nampla;
 extern struct star_data		*star_base, *star;
@@ -25,7 +25,7 @@ int get_location ()
 		best_score, next_best_score, best_nampla_index,
 		minimum_score;
 
-    char	upper_nampla_name[32], *temp1_ptr, *temp2_ptr;
+    char	upper_nampla_name[MAX_LONG_NAME_BUF], *temp1_ptr, *temp2_ptr;
 
     struct nampla_data	*temp_nampla;
 
@@ -104,7 +104,7 @@ again:
 	if (temp_nampla->pn == 99) continue;
 
 	/* Make upper case copy of temp_nampla name. */
-	for (i = 0; i < 32; i++)
+	for (i = 0; i < MAX_LONG_NAME; i++)
 	    upper_nampla_name[i] = toupper(temp_nampla->name[i]);
 
 	/* Compare names. */
@@ -145,7 +145,7 @@ yet_again:
 	if (temp_nampla->pn == 99) continue;
 
 	/* Make upper case copy of temp_nampla name. */
-	for (i = 0; i < 32; i++)
+	for (i = 0; i < MAX_LONG_NAME; i++)
 	    upper_nampla_name[i] = toupper(temp_nampla->name[i]);
 
 	/* Compare names. */
@@ -189,3 +189,5 @@ done:
 
     return TRUE;
 }
+
+

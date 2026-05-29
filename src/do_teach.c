@@ -6,7 +6,7 @@
 
 extern int			abbr_index, species_number, g_spec_number,
 				first_pass, num_transactions;
-extern char			input_line[256], g_spec_name[32],
+extern char			input_line[256], g_spec_name[MAX_LONG_NAME_BUF],
 				*input_line_pointer;
 extern long			value;
 extern FILE			*log_file;
@@ -111,3 +111,4 @@ do_TEACH_command ()
     strcpy (transaction[i].name1, species->name);
     transaction[i].number3 = max_tech_level;
 }
+

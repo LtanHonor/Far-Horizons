@@ -5,7 +5,7 @@
 
 
 extern int			abbr_type, g_spec_number;
-extern char			input_line[256], g_spec_name[32];
+extern char			input_line[256], g_spec_name[MAX_LONG_NAME_BUF];
 extern FILE			*log_file;
 extern struct species_data	*species;
 
@@ -56,3 +56,4 @@ do_ALLY_command ()
     }
     log_string (".\n");
 }
+

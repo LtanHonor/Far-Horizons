@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 
  The following script will auto-generate galaxy using data piped via stdio
@@ -13,8 +13,54 @@
 """
 
 import fhutils
-import os, tempfile, subprocess, sys, shutil, csv
+import os, tempfile, subprocess, sys, shutil, csv, glob
 import getopt
+
+
+def validate_signup_row(row, row_index):
+    max_text_len = 128
+    if len(row) != 9:
+        raise ValueError(
+            "CSV row %d must have 9 fields: email,species,home_planet,gov_name,gov_type,ML,GV,LS,BI"
+            % row_index
+        )
+
+    email, sp_name, home_planet, gov_name, gov_type, ML, GV, LS, BI = [x.strip() for x in row]
+
+    for label, value in [
+        ("species", sp_name),
+        ("home_planet", home_planet),
+        ("gov_name", gov_name),
+        ("gov_type", gov_type),
+    ]:
+        if len(value) == 0:
+            raise ValueError("CSV row %d: field '%s' cannot be empty" % (row_index, label))
+        if len(value) > max_text_len:
+            raise ValueError(
+                "CSV row %d: field '%s' exceeds %d chars (%d): %s"
+                % (row_index, label, max_text_len, len(value), value)
+            )
+
+    tech_values = {}
+    for label, value in [("ML", ML), ("GV", GV), ("LS", LS), ("BI", BI)]:
+        if not value.isdigit():
+            raise ValueError("CSV row %d: field '%s' must be an integer: %s" % (row_index, label, value))
+        numeric_value = int(value)
+        if numeric_value < 0 or numeric_value > 15:
+            raise ValueError(
+                "CSV row %d: field '%s' must be between 0 and 15 (got %d)"
+                % (row_index, label, numeric_value)
+            )
+        tech_values[label] = numeric_value
+
+    tech_total = tech_values["ML"] + tech_values["GV"] + tech_values["LS"] + tech_values["BI"]
+    if tech_total != 15:
+        raise ValueError(
+            "CSV row %d: ML+GV+LS+BI must equal 15 (got %d)"
+            % (row_index, tech_total)
+        )
+
+    return [email, sp_name, home_planet, gov_name, gov_type, ML, GV, LS, BI]
 
 
 def main(argv):
@@ -44,8 +90,17 @@ def main(argv):
 
     reader = csv.reader(sys.stdin, delimiter=',')
     data = []
-    for row in reader:
-        data.append(row)
+    for idx, row in enumerate(reader, start=1):
+        if not row:
+            continue
+        if all(not cell.strip() for cell in row):
+            continue
+        try:
+            clean_row = validate_signup_row(row, idx)
+        except ValueError as exc:
+            print("Input CSV validation error: %s" % exc)
+            sys.exit(1)
+        data.append(clean_row)
 
     num_species = len(data)
 
@@ -107,6 +162,12 @@ def main(argv):
     fhutils.run(bin_dir, "Finish")
     print("\t Reporting Turn 1: executing Report")
     fhutils.run(bin_dir, "Report")
+
+    # Rename report files to add .txt extension (matches downstream tool expectations)
+    for rpt in glob.glob(os.path.join(data_dir, "*.rpt.t*")):
+        if not rpt.endswith(".txt"):
+            os.rename(rpt, rpt + ".txt")
+
     print("DONE")
 
 

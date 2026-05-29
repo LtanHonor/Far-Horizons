@@ -6,7 +6,7 @@
 
 extern int			abbr_type, first_pass, species_number,
 				g_spec_number, num_transactions, end_of_file;
-extern char			input_line[256], g_spec_name[32],
+extern char			input_line[256], g_spec_name[MAX_LONG_NAME_BUF],
 				*input_line_pointer;
 extern FILE			*log_file, *input_file;
 extern struct species_data	*species;
@@ -124,3 +124,4 @@ do_MESSAGE_command ()
     transaction[i].number2 = g_spec_number;
     strcpy (transaction[i].name2, g_spec_name);
 }
+

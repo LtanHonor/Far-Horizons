@@ -69,7 +69,7 @@ char *argv[];
 
     long	n, n_bytes, enemy_mask;
 
-    char	x, y, z, option, filename[32], sp_name[MAX_SPECIES][32],
+    char	x, y, z, option, filename[32], sp_name[MAX_SPECIES][MAX_LONG_NAME_BUF],
 		keyword[4], answer[16], log_line[256], *temp_ptr;
 
     FILE	*temp_species_log, *species_log;
@@ -1128,3 +1128,4 @@ done_orders:
 
     exit (0);
 }
+

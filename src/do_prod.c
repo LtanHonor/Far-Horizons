@@ -12,7 +12,7 @@ extern int	nampla_index, doing_production, first_pass, next_nampla_index,
 		planet_data_modified, species_number, num_transactions;
 extern long	balance, raw_material_units, production_capacity,
 		EU_spending_limit;
-extern char	production_done[1000], input_line[256], upper_name[32];
+extern char	production_done[1000], input_line[256], upper_name[MAX_LONG_NAME_BUF];
 extern FILE	*log_file;
 
 extern struct planet_data	*planet_base, *planet, *home_planet;
@@ -33,7 +33,7 @@ int	missing_production_order;
 		enemy_on_same_planet, trans_index, production_penalty,
 		ls_needed, shipyards_for_this_species;
 
-    char	upper_nampla_name[32];
+    char	upper_nampla_name[MAX_LONG_NAME_BUF];
 
     long	n, RMs_produced, num_bytes, total_siege_effectiveness,
 		siege_effectiveness[MAX_SPECIES+1], EUs_available_for_siege,
@@ -96,7 +96,7 @@ int	missing_production_order;
 	if (nampla->pn == 99) continue;
 
 	/* Make upper case copy of nampla name. */
-	for (i = 0; i < 32; i++)
+	for (i = 0; i < MAX_LONG_NAME; i++)
 	    upper_nampla_name[i] = toupper(nampla->name[i]);
 
 	/* Compare names. */
@@ -654,3 +654,5 @@ got_nampla:
 
     for (i = 0; i < MAX_ITEMS; i++) nampla->item_quantity[i] = 0;
 }
+
+

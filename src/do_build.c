@@ -9,8 +9,8 @@ extern int	nampla_index, ship_index, doing_production, tonnage, sub_light,
 		abbr_index, first_pass, species_number, species_index,
 		num_transactions, g_spec_number, abbr_type, shipyard_capacity;
 extern long	value, balance, EU_spending_limit;
-extern char	input_line[256], original_line[256], original_name[32],
-		upper_name[32], *input_line_pointer, *ship_name();
+extern char	input_line[256], original_line[256], original_name[MAX_LONG_NAME_BUF],
+		upper_name[MAX_LONG_NAME_BUF], *input_line_pointer, *ship_name();
 extern FILE	*log_file;
 
 extern struct species_data	*species;
@@ -31,7 +31,7 @@ int	continuing_construction, interspecies_construction;
 		pop_check_needed, contact_word_number, contact_bit_number,
 		already_notified[MAX_SPECIES];
 
-    char	upper_ship_name[32], *commas(), *src, *dest,
+    char	upper_ship_name[MAX_LONG_NAME_BUF], *commas(), *src, *dest,
 		*original_line_pointer;
 
     long	cost, cost_argument, unit_cost, num_items, pop_reduction,
@@ -544,7 +544,7 @@ build_ship:
 	}
 
 	/* Make upper case copy of ship name. */
-	for (i = 0; i < 32; i++)
+	for (i = 0; i < MAX_LONG_NAME; i++)
 	    upper_ship_name[i] = toupper(ship->name[i]);
 
 	/* Compare names. */
@@ -1037,3 +1037,6 @@ check_ship:
     strcpy (transaction[n].name1, species->name);
     strcpy (transaction[n].name2, ship_name (recipient_ship));
 }
+
+
+

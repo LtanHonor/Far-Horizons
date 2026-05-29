@@ -75,6 +75,18 @@ Gamemaster
 
 subject_line = """ FH:%s Announcement/Turns """
 
+
+def _resolve_attachment_path(data_dir, filename):
+    candidates = [
+        os.path.join(data_dir, filename),
+        os.path.join(data_dir, "reports", filename),
+        filename,
+    ]
+    for path in candidates:
+        if os.path.isfile(path):
+            return path
+    return None
+
 def main(argv):
     config_file = None
     test_flag = False
@@ -149,16 +161,22 @@ def main(argv):
             continue
         if file_name != None:
             report = "%s/%s" %(data_dir, file_name)
+            attachment = file_name
         elif turn == "1":
             report = "sp%s.zip" %( player['num']) # "%s/sp%s.zip" %(data_dir, player['num'])
             subject ="FH %s Game Start - %s" % (game_stub, player['name'])
             attachment = "sp%s.zip" % player['num']
         else:
-            report = "sp%s.rpt.t%s" %(player['num'], turn)  # "%s/sp%s.rpt.t%s" %(data_dir, player['num'], turn)
+            report = "sp%s.rpt.t%s.txt" %(player['num'], turn)  # "%s/sp%s.rpt.t%s.txt" %(data_dir, player['num'], turn)
             subject = "FH %s Turn Results - %s turn %s" % (game_stub, player['name'], turn)
-            attachment = "sp%s.rpt.t%s" %(player['num'], turn)
+            attachment = "sp%s.rpt.t%s.txt" %(player['num'], turn)
+        attach_path = _resolve_attachment_path(data_dir, attachment)
+        if attach_path is None:
+            print("Missing attachment for species %s: %s" % (player['num'], attachment))
+            continue
+
         if not test_flag:
-            print("Mailing %s to %s (sp %s)" %(report, player['email'], player['name']))
+            print("Mailing %s to %s (sp %s)" %(attach_path, player['email'], player['name']))
             #config.send_mail(subject, player['email'], msg, report)
         else:
             print("Writing .test file")
@@ -166,7 +184,7 @@ def main(argv):
                 f.write("To: %s\n" %( player['email']))
                 f.write("Subject: %s\n" %( subject))
                 f.write(msg)
-                f.write("Attached: %s\n"  % (report))
+                f.write("Attached: %s\n"  % (attach_path))
         receiver_address = player['email']
         #Setup the MIME
         message = MIMEMultipart()
@@ -175,10 +193,12 @@ def main(argv):
         message['Subject'] = subject_line %(game_stub)   #The subject line
         #The body and the attachments for the mail
         message.attach(MIMEText(msg, 'plain'))
-        attach_file_name = attachment  # "sp%s.zip" % player['num']
-        with open(attach_file_name,'rb') as file:
+        with open(attach_path,'rb') as file:
             # Attach the file with filename to the email
-            message.attach(MIMEApplication(file.read(), Name=attach_file_name))
+            message.attach(MIMEApplication(file.read(), Name=os.path.basename(attach_path)))
+
+        if test_flag:
+            continue
 
         session = smtplib.SMTP('smtp.gmail.com', 587) #use gmail with port
         session.starttls() #enable security

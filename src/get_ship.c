@@ -14,7 +14,7 @@ int	correct_spelling_required = FALSE;
 
 
 extern int			ship_index, abbr_type, abbr_index;
-extern char			upper_name[32], *input_line_pointer;
+extern char			upper_name[MAX_LONG_NAME_BUF], *input_line_pointer;
 extern struct species_data	*species;
 extern struct ship_data		*ship_base, *ship;
 
@@ -25,7 +25,7 @@ int get_ship ()
     int		i, n, name_length, best_score, next_best_score, best_ship_index,
 		first_try, minimum_score;
 
-    char	upper_ship_name[32], *temp1_ptr, *temp2_ptr;
+    char	upper_ship_name[MAX_LONG_NAME_BUF], *temp1_ptr, *temp2_ptr;
 
     struct ship_data	*best_ship = NULL;
 
@@ -66,7 +66,7 @@ again:
 	if (ship->pn == 99) continue;
 
 	/* Make upper case copy of ship name. */
-	for (i = 0; i < 32; i++) upper_ship_name[i] = toupper(ship->name[i]);
+	for (i = 0; i < MAX_LONG_NAME; i++) upper_ship_name[i] = toupper(ship->name[i]);
 
 	/* Compare names. */
 	if (strcmp (upper_ship_name, upper_name) == 0)
@@ -118,7 +118,7 @@ yet_again:
 	if (ship->pn == 99) continue;
 
 	/* Make upper case copy of ship name. */
-	for (i = 0; i < 32; i++) upper_ship_name[i] = toupper(ship->name[i]);
+	for (i = 0; i < MAX_LONG_NAME; i++) upper_ship_name[i] = toupper(ship->name[i]);
 
 	n = agrep_score (upper_ship_name, upper_name);
 	if (n > best_score)
@@ -162,3 +162,6 @@ yet_again:
     correct_spelling_required = FALSE;
     return TRUE;
 }
+
+
+

@@ -122,7 +122,7 @@ char	x, y, z;
     {
 	/* There is a message that must be logged whenever this star
 		system is scanned. */
-	sprintf (filename, "message%ld.txt\0", star->message);
+	sprintf (filename, "message%ld.txt%c", star->message, '\0');
 	log_message (filename);
     }
 

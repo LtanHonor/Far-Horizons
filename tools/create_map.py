@@ -9,32 +9,32 @@ import os, sys, tempfile, subprocess, shutil
 import getopt
 
 def pretty_star(stellar_code):
-    type = stellar_code[0] if len(stellar_code) == 3 else None
+    star_type = stellar_code[0] if len(stellar_code) == 3 else None
     color = stellar_code[1] if len(stellar_code) == 3 else stellar_code[0]
     size = stellar_code[2] if len(stellar_code) == 3 else stellar_code[1]
 
-    if color is "O":
+    if color == "O":
         color_p = "Blue"
-    elif color is "B":
+    elif color == "B":
         color_p = "Blue-white"
-    elif color is "A":
+    elif color == "A":
         color_p = "White"
-    elif color is "F":
+    elif color == "F":
         color_p = "Yellow-white"
-    elif color is "G":
+    elif color == "G":
         color_p = "Yellow"
-    elif color is "K":
+    elif color == "K":
         color_p = "Orange"
-    elif color is "M":
+    elif color == "M":
         color_p = "Red"
     else:
         color_p = ""
 
-    if type is "d":
+    if star_type == "d":
         type_p = "dwarf"
-    elif type is "g":
+    elif star_type == "g":
         type_p = "giant"
-    elif type is "D":
+    elif star_type == "D":
         type_p = "degenerate dwarf"
     else:
         type_p = "main sequence"
@@ -72,11 +72,15 @@ def main(argv):
     os.chdir(data_dir)
 
     output = fhutils.run(bin_dir, "ListGalaxy", ["-p"])
+
+    with open(os.path.join(data_dir, "galaxy.map.txt"), "w", encoding="utf-8") as txt_f:
+        txt_f.write(output)
+
     lines = []
     for row in output.splitlines():
         cols = row.split()
         try:
-            if cols[0] is "The":
+            if cols[0] == "The":
                 break
             x = cols[2]
             y = cols[5]
@@ -90,7 +94,7 @@ def main(argv):
     fd = tempfile.NamedTemporaryFile(mode='w', delete=False)
     fd.writelines(lines)
     fd.flush()
-    os.fsync(fd)
+    os.fsync(fd.fileno())
     fhutils.run(bin_dir, "PrintMap", ["-d", "-t", "%s"%(fd.name)])
     subprocess.call(["%s" % (PS2PDF), "-dAutoRotatePages=/None",fd.name+".ps", data_dir+"/galaxy_map_3d.pdf"])
     fhutils.run(bin_dir, "PrintMap", ["-d", "%s"%(fd.name)])

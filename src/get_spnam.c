@@ -12,10 +12,10 @@
 
 
 int			g_spec_number;
-char			g_spec_name[32];
+char			g_spec_name[MAX_LONG_NAME_BUF];
 
 extern int			abbr_type;
-extern char			upper_name[32], *input_line_pointer;
+extern char			upper_name[MAX_LONG_NAME_BUF], *input_line_pointer;
 extern struct galaxy_data	galaxy;
 
 
@@ -24,7 +24,7 @@ int get_species_name ()
     int		i, n, species_index, best_score, best_species_index,
 		next_best_score, first_try, minimum_score, name_length;
 
-    char	sp_name[32], *temp1_ptr, *temp2_ptr;
+    char	sp_name[MAX_LONG_NAME_BUF], *temp1_ptr, *temp2_ptr;
 
     struct species_data		*sp;
 
@@ -144,3 +144,4 @@ yet_again:
     abbr_type = SPECIES_ID;
     return TRUE;
 }
+

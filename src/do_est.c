@@ -5,7 +5,7 @@
 
 
 extern int			first_pass, doing_production, g_spec_number;
-extern char			input_line[256], g_spec_name[32];
+extern char			input_line[256], g_spec_name[MAX_LONG_NAME_BUF];
 extern FILE			*log_file;
 extern struct species_data	*species;
 extern struct nampla_data	*nampla_base;
@@ -100,3 +100,4 @@ do_ESTIMATE_command ()
     log_string (", BI = ");   log_int (estimate[BI]);
     log_string (".\n");
 }
+

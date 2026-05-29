@@ -7,8 +7,8 @@
 
 extern int			x, y, z, pn, num_stars, nampla_index,
 				species_index;
-extern char			input_line[256], upper_name[32],
-				original_name[32], *input_line_pointer;
+extern char			input_line[256], upper_name[MAX_LONG_NAME_BUF],
+				original_name[MAX_LONG_NAME_BUF], *input_line_pointer;
 extern FILE			*log_file;
 extern struct species_data	*species;
 extern struct star_data		*star;
@@ -20,7 +20,7 @@ do_NAME_command ()
 {
     int		i, found, name_length, unused_nampla_available;
 
-    char	upper_nampla_name[32], *original_line_pointer;
+    char	upper_nampla_name[MAX_LONG_NAME_BUF], *original_line_pointer;
 
     struct planet_data		*planet;
     struct nampla_data		*unused_nampla;
@@ -85,7 +85,7 @@ do_NAME_command ()
 	}
 
 	/* Make upper case copy of nampla name. */
-	for (i = 0; i < 32; i++)
+	for (i = 0; i < MAX_LONG_NAME; i++)
 	    upper_nampla_name[i] = toupper(nampla->name[i]);
 
 	/* Compare names. */
@@ -144,3 +144,5 @@ do_NAME_command ()
     log_string (", planet #");  log_int (nampla->pn);
     log_string (".\n");
 }
+
+

@@ -19,7 +19,7 @@ extern int			x, y, z, pn, first_pass, ship_index, abbr_type,
 				abbr_index, species_number, num_transactions;
 
 extern char			input_line[256], original_line[256],
-				upper_name[32], *input_line_pointer,
+				upper_name[MAX_LONG_NAME_BUF], *input_line_pointer,
 				*ship_name();
 
 extern FILE			*log_file;
@@ -388,7 +388,7 @@ int get_jump_portal ()
 
     long	bit_mask;
 
-    char	start_x, start_y, start_z, upper_ship_name[32],
+    char	start_x, start_y, start_z, upper_ship_name[MAX_LONG_NAME_BUF],
 		*original_line_pointer;
 
     struct species_data		*original_species;
@@ -545,3 +545,5 @@ check_for_bad_spelling:
 
     return found;
 }
+
+

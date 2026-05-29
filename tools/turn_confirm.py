@@ -13,6 +13,7 @@ import fhutils
 import os, tempfile, subprocess, sys
 import getopt
 import shutil
+import glob
 
 def main(argv):
     config_file = ''
@@ -63,11 +64,22 @@ def main(argv):
     os.chdir(tempdir)
 
     print("Copying *.dat files to $odn...")
-    os.system("cp -p *.dat %s" % (data_dir))
+    for src in glob.glob("*.dat"):
+        shutil.copy2(src, data_dir)
+
     print("Copying order files to $odn...")
-    os.system("cp -p *.ord %s" % (data_dir))
+    for src in glob.glob("*.ord"):
+        shutil.copy2(src, data_dir)
+
     print("Copying report files to $odn...")
-    os.system("cp -p *.rpt.* %s" % (data_dir))
+    for src in glob.glob("*.rpt.*"):
+        shutil.copy2(src, data_dir)
+
+    # Rename rpt files in data_dir to add .txt extension so they open in text editors
+    os.chdir(data_dir)
+    for rpt in glob.glob(os.path.join(data_dir, "*.rpt.t*")):
+        if not rpt.endswith(".txt"):
+            os.rename(rpt, rpt + ".txt")
 
     os.chdir(data_dir)
     print("Turn Complete")

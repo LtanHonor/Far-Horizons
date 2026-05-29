@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+
 /* This program will generate default orders for a species if no explicit
 	orders have been provided. */
 

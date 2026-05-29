@@ -1,19 +1,123 @@
 #!/usr/bin/env python3
 
-import sys, subprocess, os, codecs
+import sys, subprocess, os, shutil
 from imapclient import IMAPClient
-import email, email.utils, email.parser, pyzmail, smtplib, ssl
+import email, email.utils, email.parser, smtplib, ssl
 import fhutils, base64
 from email.mime.multipart import MIMEMultipart
 from email.mime.application import MIMEApplication
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 
+try:
+    import pyzmail36 as pyzmail
+except ImportError:
+    import pyzmail
+
 server = "imap.gmail.com"
 port = 993
 ssl = True
 
 VeriText = """This email is to verify that the GM has received and downloaded your orders for this deadline.  Please verify that the orders are correct!"""
+
+
+def repo_root():
+    return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+def verifier_script_path():
+    return os.path.join(repo_root(), "bash", "orders.pl")
+
+
+def windows_to_wsl_path(path):
+    normalized = os.path.abspath(path).replace("\\", "/")
+    drive, tail = os.path.splitdrive(normalized)
+    if drive:
+        return "/mnt/%s%s" % (drive[0].lower(), tail)
+    return normalized
+
+
+def verifier_command():
+    script_path = verifier_script_path()
+    if not os.path.isfile(script_path):
+        raise FileNotFoundError("Could not find orders verifier script: %s" % script_path)
+
+    perl_path = shutil.which("perl")
+    if perl_path:
+        return [perl_path, script_path]
+
+    if os.name == "nt" and shutil.which("wsl.exe"):
+        return ["wsl.exe", "perl", windows_to_wsl_path(script_path)]
+
+    raise FileNotFoundError(
+        "Could not find a Perl runtime. Install Perl or enable WSL to run %s" % script_path
+    )
+
+
+def verify_orders(orders_bytes):
+    completed = subprocess.run(
+        verifier_command(),
+        input=orders_bytes,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    if completed.returncode != 0 and completed.stderr:
+        print("orders.pl verification warning: %s" % completed.stderr.decode("utf-8", errors="replace").strip())
+    return completed.stdout
+
+
+def decode_part_text(part):
+    payload = part.get_payload(decode=True)
+    if payload is None:
+        payload = part.get_payload()
+        if isinstance(payload, str):
+            return payload
+        return None
+    if isinstance(payload, str):
+        return payload
+    charset = part.get_content_charset() or "utf-8"
+    try:
+        return payload.decode(charset)
+    except (LookupError, UnicodeDecodeError):
+        return payload.decode("utf-8", errors="replace")
+
+
+def extract_orders_text(mail, from_address):
+    if not mail.is_multipart():
+        print("using orders in plain body")
+        return decode_part_text(mail)
+
+    print("Multipart Message detected, searching for plain text payload!")
+    text_attachment = None
+    text_body = None
+    fallback_attachment = None
+    for part in mail.walk():
+        if part.get_content_maintype() == 'multipart':
+            continue
+        payload_text = decode_part_text(part)
+        if not payload_text:
+            continue
+        filename = (part.get_filename() or "").lower()
+        content_type = part.get_content_type()
+        disposition = (part.get_content_disposition() or "").lower()
+        is_attachment = disposition == "attachment" or bool(filename)
+        if content_type == "text/plain":
+            if is_attachment:
+                print("found orders in text attachment")
+                return payload_text
+            if text_body is None:
+                text_body = payload_text
+                print("found orders in multipart payload")
+        elif filename.endswith((".ord", ".txt")):
+            fallback_attachment = payload_text
+    if fallback_attachment is not None:
+        print("found orders in text-like attachment")
+        return fallback_attachment
+    if text_body is not None:
+        return text_body
+    print("Could not find text/plain payload for " + from_address)
+    return None
 
 # Function to get email content part i.e its body part
 def get_body(msg):
@@ -81,48 +185,17 @@ def main():
             if from_address == player['email']:
                 print("Player Found and Processing : %s" % from_address)
                 orders_file = "%s/sp%s.ord" %(data_dir, player['num'])
-                fd = codecs.open(orders_file, 'w', 'utf-8')
-                orders = None
-                if mail.is_multipart():
-                    print("Multipart Message detected, searching for plain text payload!")
-                    for part in mail.walk():
-                        # multipart/* are just containers
-                        if part.get_content_maintype() == 'multipart':
-                            continue
-                        filename = part.get_filename()
-                        if not filename:
-                            continue
-                        if part.get_content_type() != "text/plain":
-                            print("Error: attachment found, but not a plain text file for "  + from_address)
-                        else:
-                            print("found orders in attachment")
-                            orders = part.get_payload(decode=True)
-                    if orders is None: # ok, no attachment, lets try the actual content
-                        payloads = mail.get_payload()
-                        try:
-                            found = False
-                            for loads in payloads:
-                                if loads.get_content_type()  == "text/plain":
-                                    mail = loads
-                                    found = True
-                                    print("found orders in multipart payload")
-                                    orders = loads.get_payload(decode=True)
-                                    break
-                            if not found:
-                                raise email.errors.MessageError
-                        except email.errors.MessageError:
-                            print("Could not find text/plain payload for " + from_address)
-                else:
-                    print("using orders in plain body")
-                    orders = mail.get_payload(decode=True).decode('utf-8')
-                orders = orders.decode('utf-8')
+                orders = extract_orders_text(mail, from_address)
+                if orders is None:
+                    print("Skipping message with no usable order text for %s" % from_address)
+                    continue
                 orders = orders.replace('\r\n', '\n').replace('\r', '\n')
 #	.decode('UTF-8')
 #                orders = str(orders, 'utf-8')
                 orders = orders.replace("\u00A0", " ").encode('utf-8')
                 orders = orders.decode('utf-8')
-                fd.write(orders)
-                fd.close()
+                with open(orders_file, 'w', encoding='utf-8') as fd:
+                    fd.write(orders)
                 config = fhutils.GameConfig()
                 game = config.gameslist[0] # for now we only support a single game
                 game_name = game['name']
@@ -131,8 +204,7 @@ def main():
                 bin_dir = config.bindir
 
                 orders = orders.encode('utf-8')
-                p = subprocess.Popen(["/usr/bin/perl", "/home/jason/Far-Horizons/bash/orders.pl"], stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
-                verify = p.communicate(input=orders)[0]
+                verify = verify_orders(orders)
                 subject = "FH Orders, %s Verified Receipt" % (game_stub)
                 message = MIMEMultipart()
                 message['From'] = user_name

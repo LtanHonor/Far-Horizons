@@ -72,7 +72,7 @@ get_species_data ()
 	sp = &spec_data[species_index];
 
 	/* Open the species data file. */
-	sprintf (filename, "sp%02d.dat\0", species_index + 1);
+	sprintf (filename, "sp%02d.dat%c", species_index + 1, '\0');
 	species_fd = open (filename, 0);
 	if (species_fd < 0)
 	{
@@ -158,7 +158,7 @@ save_species_data ()
 	sp = &spec_data[species_index];
 
 	/* Open the species data file. */
-	sprintf (filename, "sp%02d.dat\0", species_index + 1);
+	sprintf (filename, "sp%02d.dat%c", species_index + 1, '\0');
 	species_fd = creat (filename, 0600);
 	if (species_fd < 0)
 	{
@@ -300,7 +300,7 @@ long	value;
 	negative = FALSE;
     }
 
-    sprintf (temp, "%ld\0", abs_value);
+    sprintf (temp, "%ld%c", abs_value, '\0');
 
     length = strlen (temp);
 
@@ -357,23 +357,23 @@ struct ship_data	*ship;
     if (ship_is_distorted)
     {
 	if (ship->class == TR)
-	    sprintf (full_ship_id, "%s%d ???\0", ship_abbr[ship->class],
-		ship->tonnage);
+	    sprintf (full_ship_id, "%s%d ???%c", ship_abbr[ship->class],
+		ship->tonnage, '\0');
 	else if (ship->class == BA)
-	    sprintf (full_ship_id, "BAS ???\0");
+	    sprintf (full_ship_id, "BAS ???%c", '\0');
 	else
-	    sprintf (full_ship_id, "%s ???\0", ship_abbr[ship->class]);
+	    sprintf (full_ship_id, "%s ???%c", ship_abbr[ship->class], '\0');
     }
     else if (ship->class == TR)
     {
-	sprintf (full_ship_id, "%s%d%s %s\0",
+	sprintf (full_ship_id, "%s%d%s %s%c",
 		ship_abbr[ship->class], ship->tonnage, ship_type[ship->type],
-		ship->name);
+		ship->name, '\0');
     }
     else
     { 
-	sprintf (full_ship_id, "%s%s %s\0",
-		ship_abbr[ship->class], ship_type[ship->type], ship->name);
+	sprintf (full_ship_id, "%s%s %s%c",
+		ship_abbr[ship->class], ship_type[ship->type], ship->name, '\0');
     }
 
     if (truncate_name) return &full_ship_id[0];
@@ -388,7 +388,7 @@ struct ship_data	*ship;
 	if (ship->status != UNDER_CONSTRUCTION)
 	{
 	    /* Do age. */
-	    sprintf (temp, "A%d,\0", effective_age);
+	    sprintf (temp, "A%d,%c", effective_age, '\0');
 	    strcat (full_ship_id, temp);
 	}
     }
@@ -397,25 +397,25 @@ struct ship_data	*ship;
     switch (status)
     {
 	case UNDER_CONSTRUCTION:
-		sprintf (temp, "C\0");
+		sprintf (temp, "C%c", '\0');
 		break;
 	case IN_ORBIT:
-		sprintf (temp, "O%d\0", ship->pn);
+		sprintf (temp, "O%d%c", ship->pn, '\0');
 		break;
 	case ON_SURFACE:
-		sprintf (temp, "L%d\0", ship->pn);
+		sprintf (temp, "L%d%c", ship->pn, '\0');
 		break;
 	case IN_DEEP_SPACE:
-		sprintf (temp, "D\0");
+		sprintf (temp, "D%c", '\0');
 		break;
 	case FORCED_JUMP:
-		sprintf (temp, "FJ\0");
+		sprintf (temp, "FJ%c", '\0');
 		break;
 	case JUMPED_IN_COMBAT:
-		sprintf (temp, "WD\0");
+		sprintf (temp, "WD%c", '\0');
 		break;
 	default:
-		sprintf (temp, "***???***\0");
+		sprintf (temp, "***???***%c", '\0');
 		fprintf (stderr, "\n\tWARNING!!!  Internal error in subroutine 'ship_name'\n\n");
     }
 
@@ -423,7 +423,7 @@ struct ship_data	*ship;
 
     if (ship->type == STARBASE)
     {
-	sprintf (temp, ",%ld tons\0", 10000L * (long) ship->tonnage);
+	sprintf (temp, ",%ld tons%c", 10000L * (long) ship->tonnage, '\0');
 	strcat (full_ship_id, temp);
     }
 
@@ -549,7 +549,7 @@ int	value;
 
     if (logging_disabled) return;
 
-    sprintf (string, "%d\0", value);
+    sprintf (string, "%d%c", value, '\0');
     log_string (string);
 }
 
@@ -564,7 +564,7 @@ long	value;
 
     if (logging_disabled) return;
 
-    sprintf (string, "%ld\0", value);
+    sprintf (string, "%ld%c", value, '\0');
     log_string (string);
 }
 
@@ -767,7 +767,7 @@ struct nampla_data	*nampla;
 	    {
 		/* There is a message that must be logged whenever this planet
 			becomes populated for the first time. */
-		sprintf (filename, "message%ld.txt\0", nampla->message);
+		sprintf (filename, "message%ld.txt%c", nampla->message, '\0');
 		log_message (filename);
 	    }
 	}

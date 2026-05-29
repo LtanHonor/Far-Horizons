@@ -14,7 +14,7 @@
 
 """
 import fhutils
-import os, tempfile, subprocess, sys, shutil
+import os, tempfile, subprocess, sys, shutil, glob
 import getopt
 
 def main(argv):
@@ -69,12 +69,32 @@ def main(argv):
     tempdir = tempfile.mkdtemp("fhtest")
     config.write_tmpdir(game_name, tempdir)
     print("Using tempdir %s" % (tempdir))
-    print("Copying all needed files to /tmp/fhtest.dir/ ...")
-    os.system("cp -p *.ord %s" % (tempdir))
-    os.system("cp -p *.dat %s" % (tempdir))
-    os.system("cp -p *.txt %s" % (tempdir))
-    os.system("cp -p *.msg %s" % (tempdir))
-    os.system("cp -p *.log %s" % (tempdir))
+    print("Copying all needed files to %s ..." % (tempdir))
+
+    copied = 0
+    for pattern in ("*.ord", "*.dat", "*.txt", "*.msg", "*.log"):
+        for src in glob.glob(pattern):
+            shutil.copy2(src, tempdir)
+            copied += 1
+
+    # NoOrders requires a local noorders.txt template.
+    noorders_dst = os.path.join(tempdir, "noorders.txt")
+    if not os.path.isfile(noorders_dst):
+        noorders_src = os.path.join(data_dir, "noorders.txt")
+        default_src = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "doc", "default_orders"))
+        if os.path.isfile(noorders_src):
+            shutil.copy2(noorders_src, noorders_dst)
+            copied += 1
+        elif os.path.isfile(default_src):
+            shutil.copy2(default_src, noorders_dst)
+            copied += 1
+        else:
+            print("Missing required noorders template (expected noorders.txt or doc/default_orders).")
+            sys.exit(2)
+
+    if copied == 0:
+        print("No matching files found to copy from %s" % (data_dir))
+        sys.exit(2)
 
     os.chdir(tempdir)
 

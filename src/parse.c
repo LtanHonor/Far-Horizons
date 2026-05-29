@@ -7,7 +7,7 @@
 int	end_of_file = FALSE;
 int	abbr_type, abbr_index, sub_light, tonnage, just_opened_file;
 char	input_abbr[256], input_line[256], original_line[256], *input_line_pointer;
-char	original_name[32], upper_name[32];
+char	original_name[MAX_LONG_NAME_BUF], upper_name[MAX_LONG_NAME_BUF];
 long	value;
 FILE	*input_file;
 
@@ -430,3 +430,4 @@ fix_separator ()
     temp_ptr = strchr (temp_ptr, ' ');
     if (temp_ptr != NULL) *temp_ptr = ',';
 }
+

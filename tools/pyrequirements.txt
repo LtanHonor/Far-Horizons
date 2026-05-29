@@ -1,6 +1,8 @@
-imapclient
-pyzmail
-pyyaml
+imapclient>=2.3.1
+pyzmail36>=1.0.5
+pyyaml>=6.0
+python-dateutil>=2.8.2
+FreeSimpleGUI>=5.2.0
 
 # This file will install the required python packages.  for PyYAML, it might already be installed
 # in this case, run pip3 install -U PyYAML
