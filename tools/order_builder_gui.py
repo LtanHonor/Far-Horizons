@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import re
 import sys
+import json
 from pathlib import Path
 from typing import NamedTuple
 
@@ -19,6 +20,160 @@ except ImportError:
     print("FreeSimpleGUI is not installed. Install dependencies with:")
     print("python -m pip install -r pyrequirements.txt")
     raise
+
+
+THEME_OPTIONS = [
+    "FH Light Classic",
+    "FH Light Sky",
+    "FH Light Sand",
+    "FH Light Mint",
+    "FH Dark Slate",
+    "FH Dark Ocean",
+    "FH Dark Ember",
+    "FH Dark Matrix",
+]
+
+THEME_DEFINITIONS = {
+    "FH Light Classic": {
+        "BACKGROUND": "#f4f6f8",
+        "TEXT": "#1f2328",
+        "INPUT": "#ffffff",
+        "TEXT_INPUT": "#1f2328",
+        "SCROLL": "#8b949e",
+        "BUTTON": ("#ffffff", "#2d5b88"),
+        "PROGRESS": ("#2d5b88", "#d9e2ec"),
+        "BORDER": 1,
+        "SLIDER_DEPTH": 0,
+        "PROGRESS_DEPTH": 0,
+    },
+    "FH Light Sky": {
+        "BACKGROUND": "#eaf4ff",
+        "TEXT": "#11263a",
+        "INPUT": "#ffffff",
+        "TEXT_INPUT": "#11263a",
+        "SCROLL": "#5e7b99",
+        "BUTTON": ("#ffffff", "#3a76b3"),
+        "PROGRESS": ("#3a76b3", "#cfe5fb"),
+        "BORDER": 1,
+        "SLIDER_DEPTH": 0,
+        "PROGRESS_DEPTH": 0,
+    },
+    "FH Light Sand": {
+        "BACKGROUND": "#fbf5e9",
+        "TEXT": "#3a2f1b",
+        "INPUT": "#fffdf7",
+        "TEXT_INPUT": "#3a2f1b",
+        "SCROLL": "#7f6a45",
+        "BUTTON": ("#ffffff", "#a87a2f"),
+        "PROGRESS": ("#a87a2f", "#eadcc2"),
+        "BORDER": 1,
+        "SLIDER_DEPTH": 0,
+        "PROGRESS_DEPTH": 0,
+    },
+    "FH Light Mint": {
+        "BACKGROUND": "#ecf8f3",
+        "TEXT": "#113128",
+        "INPUT": "#ffffff",
+        "TEXT_INPUT": "#113128",
+        "SCROLL": "#4f7b6d",
+        "BUTTON": ("#ffffff", "#2f8b6e"),
+        "PROGRESS": ("#2f8b6e", "#cfe8df"),
+        "BORDER": 1,
+        "SLIDER_DEPTH": 0,
+        "PROGRESS_DEPTH": 0,
+    },
+    "FH Dark Slate": {
+        "BACKGROUND": "#1c2128",
+        "TEXT": "#e6edf3",
+        "INPUT": "#262c36",
+        "TEXT_INPUT": "#e6edf3",
+        "SCROLL": "#73808c",
+        "BUTTON": ("#f0f6fc", "#3d6ea8"),
+        "PROGRESS": ("#3d6ea8", "#11161d"),
+        "BORDER": 1,
+        "SLIDER_DEPTH": 0,
+        "PROGRESS_DEPTH": 0,
+    },
+    "FH Dark Ocean": {
+        "BACKGROUND": "#101b26",
+        "TEXT": "#d7e6f5",
+        "INPUT": "#142435",
+        "TEXT_INPUT": "#d7e6f5",
+        "SCROLL": "#5f7e99",
+        "BUTTON": ("#f4f9ff", "#2d7cb8"),
+        "PROGRESS": ("#2d7cb8", "#0b1219"),
+        "BORDER": 1,
+        "SLIDER_DEPTH": 0,
+        "PROGRESS_DEPTH": 0,
+    },
+    "FH Dark Ember": {
+        "BACKGROUND": "#241a17",
+        "TEXT": "#f2e5dc",
+        "INPUT": "#2e211d",
+        "TEXT_INPUT": "#f2e5dc",
+        "SCROLL": "#98796d",
+        "BUTTON": ("#fff4ef", "#b85c2d"),
+        "PROGRESS": ("#b85c2d", "#16100e"),
+        "BORDER": 1,
+        "SLIDER_DEPTH": 0,
+        "PROGRESS_DEPTH": 0,
+    },
+    "FH Dark Matrix": {
+        "BACKGROUND": "#08120b",
+        "TEXT": "#78ff9f",
+        "INPUT": "#0d1e13",
+        "TEXT_INPUT": "#a7ffbf",
+        "SCROLL": "#3ea65f",
+        "BUTTON": ("#0a1a10", "#2fdc67"),
+        "PROGRESS": ("#2fdc67", "#030804"),
+        "BORDER": 1,
+        "SLIDER_DEPTH": 0,
+        "PROGRESS_DEPTH": 0,
+    },
+}
+
+DEFAULT_THEME = "FH Light Classic"
+SCRIPT_DIR = Path(__file__).resolve().parent
+GUI_SETTINGS_PATH = SCRIPT_DIR / ".fh_gui_settings.json"
+
+
+def register_themes() -> None:
+    for theme_name, theme_def in THEME_DEFINITIONS.items():
+        if hasattr(sg, "theme_add_new"):
+            sg.theme_add_new(theme_name, theme_def)
+        elif hasattr(sg, "LOOK_AND_FEEL_TABLE"):
+            sg.LOOK_AND_FEEL_TABLE[theme_name] = theme_def
+
+
+def load_saved_theme() -> str:
+    try:
+        if not GUI_SETTINGS_PATH.exists():
+            return DEFAULT_THEME
+        data = json.loads(GUI_SETTINGS_PATH.read_text(encoding="utf-8"))
+        theme = data.get("theme")
+        if theme in THEME_OPTIONS:
+            return theme
+    except (OSError, json.JSONDecodeError, TypeError):
+        pass
+    return DEFAULT_THEME
+
+
+def save_theme(theme_name: str) -> None:
+    if theme_name not in THEME_OPTIONS:
+        return
+    data = {"theme": theme_name}
+    try:
+        if GUI_SETTINGS_PATH.exists():
+            current = json.loads(GUI_SETTINGS_PATH.read_text(encoding="utf-8"))
+            if isinstance(current, dict):
+                current.update(data)
+                data = current
+    except (OSError, json.JSONDecodeError, TypeError):
+        pass
+    try:
+        GUI_SETTINGS_PATH.write_text(json.dumps(data, indent=2), encoding="utf-8")
+    except OSError:
+        pass
 
 
 SECTION_ORDER = [
@@ -594,8 +749,8 @@ def refresh_preview(window: sg.Window) -> None:
     window["-PREVIEW-"].update(build_order_line(command, current_command_values(window, command)))
 
 
-def build_layout() -> list[list[sg.Element]]:
-    sg.theme("SystemDefault")
+def build_layout(theme_name: str) -> list[list[sg.Element]]:
+    sg.theme(theme_name)
     param_rows = []
     for row in range(MAX_PARAM_ROWS):
         param_rows.append([
@@ -604,6 +759,11 @@ def build_layout() -> list[list[sg.Element]]:
             sg.Input("", key=f"-P{row}-INPUT-", size=(50, 1), enable_events=True, visible=False),
         ])
     return [
+        [
+            sg.Text("Theme"),
+            sg.Combo(THEME_OPTIONS, default_value=theme_name, key="-THEME-", readonly=True, size=(22, 1)),
+            sg.Button("Apply Theme", key="-APPLY-THEME-"),
+        ],
         [
             sg.Text("Turn File"),
             sg.Input(key="-FILE-", size=(70, 1)),
@@ -681,14 +841,29 @@ def prompt_save_path(context: TurnContext | None) -> str:
 def main(argv: list[str] | None = None) -> None:
     if argv is None:
         argv = sys.argv[1:]
-    window = sg.Window("Far Horizons Order Builder", build_layout(), resizable=True, finalize=True)
+    register_themes()
+    theme_name = load_saved_theme()
+    initial_file_arg = ""
+    i = 0
+    while i < len(argv):
+        if argv[i] == "--theme" and i + 1 < len(argv):
+            candidate = argv[i + 1]
+            if candidate in THEME_OPTIONS:
+                theme_name = candidate
+            i += 2
+            continue
+        if not initial_file_arg:
+            initial_file_arg = argv[i]
+        i += 1
+
+    window = sg.Window("Far Horizons Order Builder", build_layout(theme_name), resizable=True, finalize=True)
     context: TurnContext | None = None
     update_command_values(window, SECTION_ORDER[0])
     update_command_form(window, None, window["-COMMAND-"].get())
     refresh_preview(window)
 
-    if argv:
-        initial_path = Path(argv[0])
+    if initial_file_arg:
+        initial_path = Path(initial_file_arg)
         if initial_path.exists():
             context = load_turn_context(initial_path)
             load_context_into_window(window, context)
@@ -701,6 +876,35 @@ def main(argv: list[str] | None = None) -> None:
         event, values = window.read()
         if event in (sg.WIN_CLOSED, "Exit"):
             break
+
+        if event == "-APPLY-THEME-":
+            selected_theme = values.get("-THEME-", "")
+            if selected_theme not in THEME_OPTIONS or selected_theme == theme_name:
+                continue
+            save_theme(selected_theme)
+            current_file = window["-FILE-"].get().strip()
+            current_order = window["-ORDER-"].get()
+            current_section = window["-SECTION-"].get()
+            current_command = window["-COMMAND-"].get()
+            theme_name = selected_theme
+            window.close()
+            window = sg.Window("Far Horizons Order Builder", build_layout(theme_name), resizable=True, finalize=True)
+            update_command_values(window, SECTION_ORDER[0])
+            if context is not None:
+                load_context_into_window(window, context)
+            if current_file:
+                window["-FILE-"].update(current_file)
+            if current_section in SECTION_ORDER:
+                window["-SECTION-"].update(current_section)
+                update_command_values(window, current_section)
+            if current_command:
+                window["-COMMAND-"].update(value=current_command)
+            update_command_form(window, context, window["-COMMAND-"].get())
+            if current_order:
+                window["-ORDER-"].update(current_order)
+            refresh_preview(window)
+            window["-STATUS-"].update(f"Theme set to {theme_name}.")
+            continue
 
         if event == "-LOAD-":
             file_value = values["-FILE-"]

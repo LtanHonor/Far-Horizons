@@ -9,9 +9,11 @@ It can run all primary GM automation tools and browse/view game files.
 from __future__ import annotations
 
 import glob
+import json
 import os
 import subprocess
 import sys
+import ctypes
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
@@ -28,6 +30,223 @@ except ImportError:
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent
+
+THEME_OPTIONS = [
+    "FH Light Classic",
+    "FH Light Sky",
+    "FH Light Sand",
+    "FH Light Mint",
+    "FH Dark Slate",
+    "FH Dark Ocean",
+    "FH Dark Ember",
+    "FH Dark Matrix",
+]
+
+THEME_DEFINITIONS = {
+    "FH Light Classic": {
+        "BACKGROUND": "#f4f6f8",
+        "TEXT": "#1f2328",
+        "INPUT": "#ffffff",
+        "TEXT_INPUT": "#1f2328",
+        "SCROLL": "#8b949e",
+        "BUTTON": ("#ffffff", "#2d5b88"),
+        "PROGRESS": ("#2d5b88", "#d9e2ec"),
+        "BORDER": 1,
+        "SLIDER_DEPTH": 0,
+        "PROGRESS_DEPTH": 0,
+    },
+    "FH Light Sky": {
+        "BACKGROUND": "#eaf4ff",
+        "TEXT": "#11263a",
+        "INPUT": "#ffffff",
+        "TEXT_INPUT": "#11263a",
+        "SCROLL": "#5e7b99",
+        "BUTTON": ("#ffffff", "#3a76b3"),
+        "PROGRESS": ("#3a76b3", "#cfe5fb"),
+        "BORDER": 1,
+        "SLIDER_DEPTH": 0,
+        "PROGRESS_DEPTH": 0,
+    },
+    "FH Light Sand": {
+        "BACKGROUND": "#fbf5e9",
+        "TEXT": "#3a2f1b",
+        "INPUT": "#fffdf7",
+        "TEXT_INPUT": "#3a2f1b",
+        "SCROLL": "#7f6a45",
+        "BUTTON": ("#ffffff", "#a87a2f"),
+        "PROGRESS": ("#a87a2f", "#eadcc2"),
+        "BORDER": 1,
+        "SLIDER_DEPTH": 0,
+        "PROGRESS_DEPTH": 0,
+    },
+    "FH Light Mint": {
+        "BACKGROUND": "#ecf8f3",
+        "TEXT": "#113128",
+        "INPUT": "#ffffff",
+        "TEXT_INPUT": "#113128",
+        "SCROLL": "#4f7b6d",
+        "BUTTON": ("#ffffff", "#2f8b6e"),
+        "PROGRESS": ("#2f8b6e", "#cfe8df"),
+        "BORDER": 1,
+        "SLIDER_DEPTH": 0,
+        "PROGRESS_DEPTH": 0,
+    },
+    "FH Dark Slate": {
+        "BACKGROUND": "#1c2128",
+        "TEXT": "#e6edf3",
+        "INPUT": "#262c36",
+        "TEXT_INPUT": "#e6edf3",
+        "SCROLL": "#73808c",
+        "BUTTON": ("#f0f6fc", "#3d6ea8"),
+        "PROGRESS": ("#3d6ea8", "#11161d"),
+        "BORDER": 1,
+        "SLIDER_DEPTH": 0,
+        "PROGRESS_DEPTH": 0,
+    },
+    "FH Dark Ocean": {
+        "BACKGROUND": "#101b26",
+        "TEXT": "#d7e6f5",
+        "INPUT": "#142435",
+        "TEXT_INPUT": "#d7e6f5",
+        "SCROLL": "#5f7e99",
+        "BUTTON": ("#f4f9ff", "#2d7cb8"),
+        "PROGRESS": ("#2d7cb8", "#0b1219"),
+        "BORDER": 1,
+        "SLIDER_DEPTH": 0,
+        "PROGRESS_DEPTH": 0,
+    },
+    "FH Dark Ember": {
+        "BACKGROUND": "#241a17",
+        "TEXT": "#f2e5dc",
+        "INPUT": "#2e211d",
+        "TEXT_INPUT": "#f2e5dc",
+        "SCROLL": "#98796d",
+        "BUTTON": ("#fff4ef", "#b85c2d"),
+        "PROGRESS": ("#b85c2d", "#16100e"),
+        "BORDER": 1,
+        "SLIDER_DEPTH": 0,
+        "PROGRESS_DEPTH": 0,
+    },
+    "FH Dark Matrix": {
+        "BACKGROUND": "#08120b",
+        "TEXT": "#78ff9f",
+        "INPUT": "#0d1e13",
+        "TEXT_INPUT": "#a7ffbf",
+        "SCROLL": "#3ea65f",
+        "BUTTON": ("#0a1a10", "#2fdc67"),
+        "PROGRESS": ("#2fdc67", "#030804"),
+        "BORDER": 1,
+        "SLIDER_DEPTH": 0,
+        "PROGRESS_DEPTH": 0,
+    },
+}
+
+DEFAULT_THEME = "FH Light Classic"
+GUI_SETTINGS_PATH = SCRIPT_DIR / ".fh_gui_settings.json"
+
+
+def register_themes() -> None:
+    for theme_name, theme_def in THEME_DEFINITIONS.items():
+        if hasattr(sg, "theme_add_new"):
+            sg.theme_add_new(theme_name, theme_def)
+        elif hasattr(sg, "LOOK_AND_FEEL_TABLE"):
+            sg.LOOK_AND_FEEL_TABLE[theme_name] = theme_def
+
+
+def get_work_area_rect() -> tuple[int, int, int, int]:
+    """Return usable desktop rectangle as (left, top, right, bottom).
+
+    On Windows this excludes the taskbar via SPI_GETWORKAREA. Other platforms
+    fall back to full screen size from Tk with origin at (0, 0).
+    """
+    if sys.platform.startswith("win"):
+        class RECT(ctypes.Structure):
+            _fields_ = [
+                ("left", ctypes.c_long),
+                ("top", ctypes.c_long),
+                ("right", ctypes.c_long),
+                ("bottom", ctypes.c_long),
+            ]
+
+        rect = RECT()
+        if ctypes.windll.user32.SystemParametersInfoW(0x0030, 0, ctypes.byref(rect), 0):
+            return int(rect.left), int(rect.top), int(rect.right), int(rect.bottom)
+
+    width, height = sg.Window.get_screen_size()
+    return 0, 0, max(1, int(width)), max(1, int(height))
+
+
+def clamp_window_to_work_area(window: sg.Window, desired_size: tuple[int, int], padding: int = 24) -> None:
+    left, top, right, bottom = get_work_area_rect()
+    work_w = max(1, right - left)
+    work_h = max(1, bottom - top)
+    desired_w, desired_h = desired_size
+    width = max(700, min(desired_w, work_w - padding))
+    height = max(520, min(desired_h, work_h - padding))
+    window.set_size((width, height))
+
+    # Start centered within the usable area (respecting monitor/work-area offset).
+    x = left + max(0, (work_w - width) // 2)
+    y = top + max(0, (work_h - height) // 2)
+    window.move(x, y)
+
+    # Decorations/title bars can make the outer bounds larger than requested size,
+    # so clamp a second time using actual window geometry.
+    window.TKroot.update_idletasks()
+    actual_w = int(window.TKroot.winfo_width())
+    actual_h = int(window.TKroot.winfo_height())
+    clamped_x = min(max(x, left), max(left, right - actual_w))
+    clamped_y = min(max(y, top), max(top, bottom - actual_h))
+    if clamped_x != x or clamped_y != y:
+        window.move(clamped_x, clamped_y)
+
+
+def place_window_in_work_area(window: sg.Window, padding: int = 24) -> None:
+    """Center an already-sized window and clamp it inside the visible work area."""
+    left, top, right, bottom = get_work_area_rect()
+    work_w = max(1, right - left)
+    work_h = max(1, bottom - top)
+
+    window.TKroot.update_idletasks()
+    actual_w = int(window.TKroot.winfo_width())
+    actual_h = int(window.TKroot.winfo_height())
+
+    x = left + max(0, (work_w - actual_w) // 2)
+    y = top + max(0, (work_h - actual_h) // 2)
+    x = min(max(x, left + padding // 2), max(left + padding // 2, right - actual_w - padding // 2))
+    y = min(max(y, top + padding // 2), max(top + padding // 2, bottom - actual_h - padding // 2))
+    window.move(x, y)
+
+
+def load_saved_theme() -> str:
+    try:
+        if not GUI_SETTINGS_PATH.exists():
+            return DEFAULT_THEME
+        data = json.loads(GUI_SETTINGS_PATH.read_text(encoding="utf-8"))
+        theme = data.get("theme")
+        if theme in THEME_OPTIONS:
+            return theme
+    except (OSError, json.JSONDecodeError, TypeError):
+        pass
+    return DEFAULT_THEME
+
+
+def save_theme(theme_name: str) -> None:
+    if theme_name not in THEME_OPTIONS:
+        return
+    data = {"theme": theme_name}
+    try:
+        if GUI_SETTINGS_PATH.exists():
+            current = json.loads(GUI_SETTINGS_PATH.read_text(encoding="utf-8"))
+            if isinstance(current, dict):
+                current.update(data)
+                data = current
+    except (OSError, json.JSONDecodeError, TypeError):
+        pass
+    try:
+        GUI_SETTINGS_PATH.write_text(json.dumps(data, indent=2), encoding="utf-8")
+    except OSError:
+        pass
 
 
 def discover_default_config() -> Path:
@@ -105,16 +324,29 @@ class AppState:
 
 
 class FHGameManagerGUI:
-    def __init__(self) -> None:
+    def __init__(self, theme_name: str = DEFAULT_THEME, config_path: Path | None = None, selected_game: str | None = None) -> None:
+        register_themes()
+        self.theme_name = theme_name if theme_name in THEME_OPTIONS else DEFAULT_THEME
         self.state = AppState(config_path=DEFAULT_CONFIG)
+        if config_path is not None:
+            self.state.config_path = config_path
+        if selected_game:
+            self.state.selected_game = selected_game
         self.player_rows: list[tuple[str, str, str]] = []
         self.window = self._build_window()
+        self.window["-CONFIG-"].update(str(self.state.config_path))
         self._load_config(update_ui=False)
         self._sync_ui_from_state()
         self._run_preflight_check(auto=True)
 
     def _build_window(self) -> sg.Window:
-        sg.theme("SystemDefault")
+        sg.theme(self.theme_name)
+
+        theme_row = [
+            sg.Text("Theme"),
+            sg.Combo(THEME_OPTIONS, key="-THEME-", default_value=self.theme_name, readonly=True, size=(22, 1)),
+            sg.Button("Apply Theme", key="-APPLY-THEME-"),
+        ]
 
         config_row = [
             sg.Text("Config"),
@@ -180,7 +412,7 @@ class FHGameManagerGUI:
             expand_x=True,
         )
 
-        signups_frame = sg.Frame(
+        signups_frame = sg.Frame( 
             "Signups",
             [
                 [
@@ -297,6 +529,7 @@ class FHGameManagerGUI:
         )
 
         layout = [
+            theme_row,
             config_row,
             game_row,
             preflight_row,
@@ -309,7 +542,16 @@ class FHGameManagerGUI:
             [sg.Button("Exit")],
         ]
 
-        return sg.Window("Far Horizons Game Manager", layout, resizable=True, finalize=True)
+        desired_size = (1055, 950)
+        window = sg.Window(
+            "Far Horizons Game Manager",
+            layout,
+            resizable=True,
+            finalize=True,
+            size=desired_size,
+        )
+        clamp_window_to_work_area(window, desired_size)
+        return window
 
     def _log(self, text: str) -> None:
         self.window["-OUTPUT-"].print(text)
@@ -359,11 +601,26 @@ class FHGameManagerGUI:
         self.state.game_dir = Path(data_dir) if data_dir else None
 
     def _sync_ui_from_state(self) -> None:
+        self.window["-CONFIG-"].update(str(self.state.config_path))
+        self.window["-THEME-"].update(value=self.theme_name)
         self.window["-GAME-"].update(values=self.state.games, value=self.state.selected_game)
         self.window["-GAME-DIR-"].update(str(self.state.game_dir or ""))
         self._refresh_files()
         self._refresh_players()
         self._refresh_player_turns()
+
+    def _relaunch_with_theme(self, theme_name: str) -> None:
+        cmd = [
+            sys.executable,
+            str(Path(__file__).resolve()),
+            "--theme",
+            theme_name,
+            "--config",
+            str(self.state.config_path),
+        ]
+        if self.state.selected_game:
+            cmd.extend(["--game", self.state.selected_game])
+        subprocess.Popen(cmd, cwd=str(SCRIPT_DIR))
 
     def _set_preflight_status(self, ok: bool, message: str) -> None:
         color = "lightgreen" if ok else "red"
@@ -705,7 +962,7 @@ class FHGameManagerGUI:
 
     def _launch_order_builder(self, initial_file: Optional[Path] = None) -> None:
         script_path = Path(self._tool_script("order_builder_gui.py"))
-        cmd = [sys.executable, str(script_path)]
+        cmd = [sys.executable, str(script_path), "--theme", self.theme_name]
 
         launch_file = initial_file
         if launch_file is None and self.state.game_dir:
@@ -773,6 +1030,7 @@ class FHGameManagerGUI:
             [sg.Button("OK"), sg.Button("Cancel")],
         ]
         win = sg.Window(title, layout, modal=True, finalize=True)
+        place_window_in_work_area(win)
         result = None
         while True:
             ev, vals = win.read()
@@ -896,7 +1154,9 @@ class FHGameManagerGUI:
             ],
         ]
 
-        win = sg.Window("New Game Wizard", layout, modal=True, resizable=True, finalize=True, size=(920, 720))
+        wizard_size = (920, 720)
+        win = sg.Window("New Game Wizard", layout, modal=True, resizable=True, finalize=True, size=wizard_size)
+        clamp_window_to_work_area(win, wizard_size)
 
         def _log(text: str) -> None:
             win["-WIZ-LOG-"].print(text)
@@ -1135,6 +1395,12 @@ class FHGameManagerGUI:
             if event == "-LOAD-CONFIG-":
                 self._load_config()
                 self._run_preflight_check(auto=True)
+            elif event == "-APPLY-THEME-":
+                selected_theme = self.window["-THEME-"].get()
+                if selected_theme in THEME_OPTIONS and selected_theme != self.theme_name:
+                    save_theme(selected_theme)
+                    self._relaunch_with_theme(selected_theme)
+                    break
             elif event == "-GAME-":
                 game_name = self.window["-GAME-"].get()
                 if game_name:
@@ -1249,7 +1515,29 @@ class FHGameManagerGUI:
 
 
 def main() -> None:
-    app = FHGameManagerGUI()
+    theme_name = load_saved_theme()
+    config_path: Path | None = None
+    selected_game: str | None = None
+
+    args = sys.argv[1:]
+    i = 0
+    while i < len(args):
+        if args[i] == "--theme" and i + 1 < len(args):
+            if args[i + 1] in THEME_OPTIONS:
+                theme_name = args[i + 1]
+            i += 2
+            continue
+        if args[i] == "--config" and i + 1 < len(args):
+            config_path = Path(args[i + 1])
+            i += 2
+            continue
+        if args[i] == "--game" and i + 1 < len(args):
+            selected_game = args[i + 1]
+            i += 2
+            continue
+        i += 1
+
+    app = FHGameManagerGUI(theme_name=theme_name, config_path=config_path, selected_game=selected_game)
     app.run()
 
 

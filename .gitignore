@@ -41,3 +41,9 @@ venv
 /.project
 /.settings/
 /.pydevproject
+*.exe
+*.zip
+/tools/dist
+/tools/__pycache__
+games
+bin_ori
